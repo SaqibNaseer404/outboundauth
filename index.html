@@ -500,6 +500,7 @@ gtag('config','G-PLRGVLMB8S');
               +(level==='ok'?'':'<a class="btn primary" href="https://wa.me/923035544889?text='+encodeURIComponent('Hi Saqib, I ran the domain health report for '+domain+' and found '+issues+' issue(s). Can you fix them?')+'" target="_blank" rel="noopener">Get my DNS fixed →</a>')
               +'</div>';
             renderResult('health-result',String(score),level,title,'Live DNS check of '+domain+' — SPF, DKIM, DMARC, mail servers and blacklist status.',all,extras);
+            try{if(window.gtag)gtag('event','health_check_run',{score:score,issues:issues});}catch(e){}
           });
         }).catch(function(){
           renderResult('health-result','—','bad','Check failed','The DNS lookup did not complete.',[finding('bad','Could not reach DNS','Check your connection and try again.')]);
@@ -507,6 +508,12 @@ gtag('config','G-PLRGVLMB8S');
       }
       $('health-run').addEventListener('click',function(){runHealthCheck($('health-domain').value);});
       $('health-domain').addEventListener('keydown',function(e){if(e.key==='Enter')runHealthCheck($('health-domain').value);});
+      /* ---------- Analytics: key events (health checks + WhatsApp clicks) ---------- */
+      document.addEventListener('click',function(e){
+        var a=e.target&&e.target.closest?e.target.closest('a[href*="wa.me"]'):null;
+        if(!a)return;
+        try{if(window.gtag)gtag('event','whatsapp_click',{link_text:(a.textContent||'').trim().slice(0,60)||'whatsapp'});}catch(err){}
+      });
       /* ---------- Scroll-spy section rail ---------- */
       (function(){
         var rail=document.querySelector('.scroll-rail');
