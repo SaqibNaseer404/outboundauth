@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="theme-color" content="#0b1715" />
+  <meta name="google-site-verification" content="lDGa9UqOTxwjHKAL1mI4PlN2ggJn2DVMSazM_CVMP5o" />
+  <meta name="description" content="What every part of an SPF record does, why too many includes break delivery, and how to stay under SPF's 10 DNS-lookup limit." />
+  <meta property="og:title" content="SPF Records Explained — OutboundAuth" />
+  <meta property="og:description" content="Syntax, mechanisms, qualifiers, and the 10 DNS-lookup limit — SPF in plain language." />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://outboundauth.com/guides/spf-explained.html" />
+  <meta name="twitter:card" content="summary" />
+  <meta property="og:image" content="https://outboundauth.com/og-cover.png" />
+  <link rel="canonical" href="https://outboundauth.com/guides/spf-explained.html" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23087f5b'/%3E%3Cpath d='M20 33l9 9 15-17' stroke='white' stroke-width='6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="/styles.css" />
+  <title>SPF Records Explained: Syntax, Lookups &amp; the 10-Lookup Limit — OutboundAuth</title>
+<!-- Google Analytics 4 -->
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied'});
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-PLRGVLMB8S"></script>
+<script>
+gtag('js', new Date());
+gtag('config','G-PLRGVLMB8S');
+</script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="/"><span class="brand-mark">✓</span>OutboundAuth</a>
+      <nav class="topnav" aria-label="Site">
+        <a href="/#toolkit">Tools</a>
+        <a href="/#services">Pricing</a>
+        <a href="/#guides">Guides</a>
+        <a class="cta" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20need%20help%20with%20my%20email%20authentication." target="_blank" rel="noopener">WhatsApp me</a>
+      </nav>
+    </div>
+  </header>
+  <div class="shell">
+    <div class="article-wrap">
+      <a class="crumb" href="/#guides">← All guides</a>
+      <article class="article">
+        <div class="kicker">Guide · SPF</div>
+        <h1>SPF records explained: syntax, lookups &amp; the 10-lookup limit</h1>
+        <p class="lede">Sender Policy Framework (SPF) is a DNS record that lists which servers are allowed to send email for your domain. When a receiving server gets mail claiming to be from you, it checks your SPF record — if the sending server isn't listed, the message looks forged.</p>
+
+        <h2>Where the record lives</h2>
+        <p>SPF is a <span class="inline">TXT</span> record published at your domain root (the <span class="inline">@</span> or bare-domain host in your DNS panel). A typical record looks like this:</p>
+        <div class="record-box"><code>v=spf1 include:_spf.google.com ip4:192.0.2.0/24 -all</code></div>
+
+        <h2>Reading it left to right</h2>
+        <ul>
+          <li><span class="inline">v=spf1</span> — the version tag. It must come first, exactly once.</li>
+          <li><span class="inline">include:_spf.google.com</span> — "also accept whatever Google's SPF record authorizes." Each <span class="inline">include:</span> triggers a DNS lookup, and includes can nest.</li>
+          <li><span class="inline">ip4:192.0.2.0/24</span> / <span class="inline">ip6:</span> — authorize a specific IP or range. No DNS lookup needed.</li>
+          <li><span class="inline">a</span> and <span class="inline">mx</span> — authorize the domain's A or MX records. Each costs a lookup.</li>
+          <li><span class="inline">-all</span> — the default policy at the end. <span class="inline">-all</span> means "fail everything else" (recommended once tested). <span class="inline">~all</span> is a soft fail for the testing phase; <span class="inline">?all</span> is neutral and protects nothing.</li>
+        </ul>
+        <p>Letters before a mechanism are qualifiers: <span class="inline">+</span> pass (default), <span class="inline">-</span> fail, <span class="inline">~</span> soft fail, <span class="inline">?</span> neutral. Anything after the <span class="inline">all</span> mechanism is never evaluated, so put it last.</p>
+
+        <h2>The 10 DNS-lookup limit</h2>
+        <p>This is the rule that breaks most SPF records. During evaluation, a receiver will perform <strong>at most 10 DNS lookups</strong> (mechanisms like <span class="inline">include:</span>, <span class="inline">a</span>, <span class="inline">mx</span>, <span class="inline">exists:</span> and the <span class="inline">redirect=</span> modifier). Nested includes count too — if you include a provider whose record includes three more providers, all of them count against your 10.</p>
+        <p>Exceed the limit and receivers return a <strong>permerror</strong> — effectively "I couldn't evaluate this," which many providers treat like a failure. The fix is usually to replace includes with direct <span class="inline">ip4:</span>/<span class="inline">ip6:</span> entries (which cost zero lookups) or to remove providers you no longer send through.</p>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li><strong>More than one SPF record.</strong> A domain must publish exactly one. Two records = permerror.</li>
+          <li><strong>Using <span class="inline">ptr</span>.</strong> It's slow, unreliable, and discouraged — remove it.</li>
+          <li><strong>Forgetting the sending tool.</strong> Every platform that sends as you (Google Workspace, Instantly, your CRM) must be authorized, or its mail fails SPF.</li>
+          <li><strong>Publishing <span class="inline">+all</span>.</strong> This authorizes the entire internet. Never use it.</li>
+        </ul>
+
+        <h2>Check your own record</h2>
+        <p>Paste your SPF value into the <a href="/#toolkit">free SPF audit tool</a> to check syntax, policy strength, and declared lookup count in plain language — or use the builder to assemble a clean record from scratch.</p>
+        <p><strong>Why this matters right now:</strong> since September 2026, <a href="/guides/zendesk-spf-suspended-tickets.html">Zendesk suspends emails with broken SPF</a> instead of delivering them — a misconfigured record now loses you customer tickets, not just spam-folder placement.</p>
+
+        <div class="cta-box">
+          <h3>Want it set up correctly, first time?</h3>
+          <p>I configure SPF, DKIM and DMARC for cold emailers and businesses — usually within 48 hours, working with you directly.</p>
+          <a class="btn primary" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20read%20your%20SPF%20guide%20and%20need%20help%20with%20my%20setup." target="_blank" rel="noopener">WhatsApp Saqib</a>
+          <a class="btn" href="/#services" style="margin-left:8px">See packages</a>
+        </div>
+      </article>
+    </div>
+    <footer class="footer">
+      <div>
+        <p>Results are guidance, not a replacement for testing with your sending provider.</p>
+        <p style="margin-top:6px">Contact: saqibnaseer077@gmail.com · +92 303 5544889</p>
+      </div>
+      <nav aria-label="Legal">
+        <a href="/guides/dmarc-guide.html">DMARC guide</a>
+        <a href="/guides/why-emails-go-to-spam.html">Spam guide</a>
+        <a href="/guides/dkim-explained.html">DKIM guide</a>
+        <a href="/guides/google-workspace-spf-dkim-dmarc-setup.html">Workspace setup guide</a>
+        <a href="/privacy.html">Privacy</a>
+        <a href="/terms.html">Terms</a>
+      </nav>
+    </footer>
+  </div>
+  <a class="wa-float" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20need%20help%20with%20my%20email%20setup." target="_blank" rel="noopener" aria-label="Chat on WhatsApp">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3C9.4 3 4 8.4 4 15c0 2.4.7 4.6 2 6.6L4 29l7.6-2c2 .9 4.1 1.5 6.4 1.5 6.6 0 12-5.4 12-12S22.6 3 16 3zm0 21.8c-2 0-3.9-.5-5.5-1.5l-.4-.2-4.5 1.2 1.2-4.4-.3-.4c-1-1.7-1.6-3.7-1.6-5.7C4.9 9.4 10.4 4 16 4s11.1 5.4 11.1 11S21.6 24.8 16 24.8zm6.1-8.1c-.3-.2-1.9-1-2.2-1.1-.3-.1-.5-.2-.7.2-.2.3-.8 1.1-1 1.3-.2.2-.4.2-.7.1-.3-.2-1.4-.5-2.6-1.6-.9-.9-1.6-1.9-1.8-2.2-.2-.3 0-.5.1-.7l.5-.6c.2-.2.2-.3.3-.6.1-.2 0-.4 0-.6-.1-.2-.7-1.8-1-2.4-.3-.6-.5-.5-.7-.6h-.6c-.2 0-.6.2-.9.4-.3.3-1.1 1.1-1.1 2.7s1.2 3.1 1.3 3.4c.2.2 2.2 3.4 5.4 4.7.8.3 1.3.5 1.8.7.8.2 1.4.2 2 .1.6-.1 1.9-.8 2.2-1.5.3-.7.3-1.4.2-1.5-.1-.2-.3-.2-.7-.4z"/></svg>
+  </a>
+<div id="cookie-banner" class="cookie-banner" hidden>
+  <p>We use cookies to understand site traffic and improve OutboundAuth. <a href="/privacy.html">Privacy Policy</a></p>
+  <div class="cookie-actions">
+    <button id="cookie-accept" type="button">Accept</button>
+    <button id="cookie-decline" type="button">Decline</button>
+  </div>
+</div>
+<script src="/consent.js"></script>
+</body>
+</html>

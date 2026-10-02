@@ -1,0 +1,544 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="theme-color" content="#0b1715" />
+  <meta name="google-site-verification" content="lDGa9UqOTxwjHKAL1mI4PlN2ggJn2DVMSazM_CVMP5o" />
+  <meta name="description" content="Free SPF, DKIM and DMARC tools: audit your email authentication records, build safer policies, inspect headers, and get done-for-you deliverability setup." />
+  <meta property="og:title" content="OutboundAuth — Free Email Authentication Tools" />
+  <meta property="og:description" content="Audit SPF, DKIM and DMARC records in plain language, build safer policies, and fix email deliverability — free tools plus done-for-you setup." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://outboundauth.com/" />
+  <meta name="twitter:card" content="summary" />
+  <meta property="og:image" content="https://outboundauth.com/og-cover.png" />
+  <meta name="twitter:title" content="OutboundAuth — Free Email Authentication Tools" />
+  <meta name="twitter:description" content="Audit SPF, DKIM and DMARC records in plain language, build safer policies, and fix email deliverability." />
+  <link rel="canonical" href="https://outboundauth.com/" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23087f5b'/%3E%3Cpath d='M20 33l9 9 15-17' stroke='white' stroke-width='6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="/styles.css" />
+  <title>OutboundAuth — Free Email Authentication Tools (SPF, DKIM, DMARC)</title>
+<!-- Google Analytics 4 -->
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied'});
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-PLRGVLMB8S"></script>
+<script>
+gtag('js', new Date());
+gtag('config','G-PLRGVLMB8S');
+</script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="/"><span class="brand-mark">✓</span>OutboundAuth</a>
+      <nav class="topnav" aria-label="Site">
+        <a href="#toolkit">Tools</a>
+        <a href="#services">Pricing</a>
+        <a href="#guides">Guides</a>
+        <a href="#" data-goto-tab="contact-panel">Contact</a>
+        <a class="cta" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20need%20help%20with%20my%20email%20authentication." target="_blank" rel="noopener">WhatsApp me</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="shell">
+    <section class="hero" id="hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <h1 id="hero-title">Stop your emails from landing in spam.</h1>
+        <p class="lede">Free SPF, DKIM and DMARC audits, record builders, and a header analyzer — find the authentication issues hurting your deliverability and fix them in minutes.</p>
+        <div class="hero-cta">
+          <a class="btn primary" href="#services">Get my DNS fixed →</a>
+          <a class="btn" href="#toolkit">Try the free tools</a>
+        </div>
+      </div>
+      <div class="hero-note"><strong>Start with a record from your DNS panel</strong><p>These tools inspect what you paste. They do not publish changes to your domain.</p></div>
+      <div class="hero-video">
+        <video controls preload="none" poster="film-poster.jpg" playsinline>
+          <source src="film.mp4" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+        <p class="video-caption">Watch: from spam folder to inbox in 45 seconds.</p>
+      </div>
+    </section>
+
+    <section class="proof-strip" aria-label="Accuracy check">
+      <div class="section-head">
+        <div class="kicker">Tested against the industry standard</div>
+        <h2>Same domains. Same verdicts.</h2>
+        <p>On Oct 2, 2026 we ran the same domains through MXToolbox and OutboundAuth minutes apart. The DNS doesn&rsquo;t lie &mdash; here&rsquo;s what both tools said.</p>
+      </div>
+      <div class="proof-grid">
+        <div class="proof-card">
+          <h3>replyworks.io</h3>
+          <ul>
+            <li><strong>SPF PASS</strong> &mdash; both tools, same record</li>
+            <li><strong>DMARC quarantine</strong> &mdash; both agree</li>
+            <li><strong>5 mail servers</strong> &mdash; both found all five</li>
+            <li><strong>Zero blacklist hits</strong> &mdash; both agree</li>
+          </ul>
+          <p class="proof-score">OutboundAuth score: <strong>96/100</strong></p>
+        </div>
+        <div class="proof-card">
+          <h3>outboundauth.com</h3>
+          <ul>
+            <li><strong>SPF <code>v=spf1 -all</code></strong> &mdash; both PASS</li>
+            <li><strong>DMARC <code>p=reject</code></strong> &mdash; both PASS</li>
+            <li><strong>No mail servers</strong> &mdash; both flag it</li>
+            <li><strong>Blacklists:</strong> they check 68, we check 7</li>
+          </ul>
+          <p class="proof-score">OutboundAuth score: <strong>85/100</strong></p>
+        </div>
+      </div>
+      <p class="proof-note">The honest gap: MXToolbox checks 68 blacklists and once caught a listing on an obscure list that our check missed &mdash; so we expanded from 2 lists to 7 the same day, and we publish the comparison anyway. Run any domain yourself: the check is free, live, and nothing is stored.</p>
+    </section>
+
+    <div class="workspace" id="toolkit">
+      <aside class="tool-nav" aria-label="Authentication tools">
+        <div class="nav-label">Toolkit</div>
+        <div class="nav-scroll" role="tablist" aria-orientation="vertical">
+          <button class="nav-btn" role="tab" aria-selected="true" aria-controls="health-panel" id="health-tab"><span class="nav-icon">✚</span><span>Health check</span></button>
+          <button class="nav-btn" role="tab" aria-selected="false" aria-controls="spf-panel" id="spf-tab"><span class="nav-icon">SPF</span><span>SPF audit</span></button>
+          <button class="nav-btn" role="tab" aria-selected="false" aria-controls="dmarc-panel" id="dmarc-tab"><span class="nav-icon">DM</span><span>DMARC</span></button>
+          <button class="nav-btn" role="tab" aria-selected="false" aria-controls="dkim-panel" id="dkim-tab"><span class="nav-icon">DK</span><span>DKIM</span></button>
+          <button class="nav-btn" role="tab" aria-selected="false" aria-controls="header-panel" id="header-tab"><span class="nav-icon">@</span><span>Headers</span></button>
+          <button class="nav-btn" role="tab" aria-selected="false" aria-controls="subject-panel" id="subject-tab"><span class="nav-icon">Aa</span><span>Subject</span></button>
+          <button class="nav-btn" role="tab" aria-selected="false" aria-controls="contact-panel" id="contact-tab"><span class="nav-icon">→</span><span>Get help</span></button>
+        </div>
+        <div class="contact-card"><strong>Need the DNS fixed?</strong><p>Get hands-on email authentication help.</p><div class="contact-links"><a href="mailto:saqibnaseer077@gmail.com?subject=Email%20authentication%20help">Email Saqib</a><a href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20need%20help%20with%20my%20email%20authentication." target="_blank" rel="noopener">WhatsApp</a></div></div>
+      </aside>
+      <main>
+        <section class="panel active" id="health-panel" role="tabpanel" aria-labelledby="health-tab">
+          <div class="panel-head"><h2>Domain health report</h2><p>Enter your domain — we check your live SPF, DKIM, DMARC, mail servers and blacklist status in one go. No signup, results in seconds.</p></div>
+          <div class="panel-body">
+            <div class="field"><label for="health-domain">Domain</label><input id="health-domain" inputmode="url" autocomplete="off" spellcheck="false" placeholder="example.com" /></div>
+            <div class="actions"><button class="btn primary" id="health-run">Run health check</button></div>
+            <div class="result" id="health-result" aria-live="polite"></div>
+            <div class="service-note"><strong>Private by design.</strong> Your browser queries public DNS directly — nothing is sent to our servers and nothing about your domain is stored.</div>
+          </div>
+        </section>
+        <section class="panel" id="spf-panel" role="tabpanel" aria-labelledby="spf-tab" hidden>
+          <div class="panel-head"><h2>SPF record audit</h2><p>Check syntax, policy strength and the number of direct DNS-lookup mechanisms declared in an SPF record.</p></div>
+          <div class="panel-body">
+            <div class="field"><label for="spf-input">SPF TXT value</label><textarea id="spf-input" spellcheck="false" placeholder="v=spf1 include:mail.example.com ip4:192.0.2.0/24 -all"></textarea></div>
+            <div class="actions"><button class="btn primary" id="spf-analyze">Analyze SPF</button><button class="text-btn" data-clear="spf-input" data-result="spf-result">Clear</button></div>
+            <div class="result" id="spf-result" aria-live="polite"></div>
+            <div class="service-note"><strong>Building from scratch?</strong> Enter the servers you authorize below. An SPF record should stay under the 10 DNS-lookup limit after all nested includes are resolved.</div>
+            <div class="field-row" style="margin-top:20px"><div class="field"><label for="spf-includes">Include domains <span class="hint">space-separated</span></label><input id="spf-includes" placeholder="_spf.example.com" /></div><div class="field"><label for="spf-ips">Authorized IPv4 addresses <span class="hint">space-separated</span></label><input id="spf-ips" placeholder="192.0.2.0/24" /></div></div>
+            <div class="field-row"><div class="field"><label for="spf-ending">Default policy</label><select id="spf-ending"><option value="-all">Fail (-all), recommended after testing</option><option value="~all">Soft fail (~all)</option><option value="?all">Neutral (?all)</option></select></div><div class="field" style="align-self:end"><button class="btn" id="spf-build">Build record</button></div></div>
+            <div id="spf-built"></div>
+          </div>
+        </section>
+        <section class="panel" id="dmarc-panel" role="tabpanel" aria-labelledby="dmarc-tab" hidden>
+          <div class="panel-head"><h2>DMARC audit &amp; builder</h2><p>Understand your enforcement policy, reporting setup and identifier alignment.</p></div>
+          <div class="panel-body">
+            <div class="field"><label for="dmarc-input">DMARC TXT value</label><textarea id="dmarc-input" spellcheck="false" placeholder="v=DMARC1; p=quarantine; rua=mailto:dmarc@example.com; pct=100"></textarea></div>
+            <div class="actions"><button class="btn primary" id="dmarc-analyze">Analyze DMARC</button><button class="text-btn" data-clear="dmarc-input" data-result="dmarc-result">Clear</button></div><div class="result" id="dmarc-result" aria-live="polite"></div>
+            <div class="service-note"><strong>Roll out carefully.</strong> Start at <code>p=none</code> while reviewing reports, then move to quarantine or reject when legitimate senders are authenticated.</div>
+            <div class="field-row" style="margin-top:20px"><div class="field"><label for="dmarc-policy">Policy</label><select id="dmarc-policy"><option value="none">Monitor only</option><option value="quarantine">Quarantine</option><option value="reject">Reject</option></select></div><div class="field"><label for="dmarc-pct">Percentage</label><input id="dmarc-pct" type="number" min="0" max="100" value="100" /></div></div>
+            <div class="field"><label for="dmarc-rua">Aggregate report inbox <span class="hint">optional</span></label><input id="dmarc-rua" type="email" placeholder="dmarc@example.com" /></div>
+            <div class="field-row"><div class="field"><label for="dmarc-adkim">DKIM alignment</label><select id="dmarc-adkim"><option value="r">Relaxed</option><option value="s">Strict</option></select></div><div class="field"><label for="dmarc-aspf">SPF alignment</label><select id="dmarc-aspf"><option value="r">Relaxed</option><option value="s">Strict</option></select></div></div>
+            <button class="btn" id="dmarc-build">Build DMARC record</button><div id="dmarc-built"></div>
+          </div>
+        </section>
+        <section class="panel" id="dkim-panel" role="tabpanel" aria-labelledby="dkim-tab" hidden>
+          <div class="panel-head"><h2>DKIM public-key audit</h2><p>Inspect the tags in a DKIM TXT record and catch common formatting problems before publishing.</p></div>
+          <div class="panel-body"><div class="field-row"><div class="field"><label for="dkim-selector">Selector <span class="hint">optional</span></label><input id="dkim-selector" placeholder="google, selector1, s1…" /></div><div class="field"><label for="dkim-domain">Domain <span class="hint">optional</span></label><input id="dkim-domain" placeholder="example.com" /></div></div><div class="field"><label for="dkim-input">DKIM TXT value</label><textarea id="dkim-input" spellcheck="false" placeholder="v=DKIM1; k=rsa; p=MIIBIjANBgkqh…"></textarea></div><div class="actions"><button class="btn primary" id="dkim-analyze">Analyze DKIM</button><button class="text-btn" data-clear="dkim-input" data-result="dkim-result">Clear</button></div><div class="result" id="dkim-result" aria-live="polite"></div></div>
+        </section>
+        <section class="panel" id="header-panel" role="tabpanel" aria-labelledby="header-tab" hidden>
+          <div class="panel-head"><h2>Email header results</h2><p>Paste raw email headers to extract SPF, DKIM and DMARC verdicts from Authentication-Results lines.</p></div>
+          <div class="panel-body"><div class="field"><label for="header-input">Raw headers</label><textarea id="header-input" style="min-height:240px" spellcheck="false" placeholder="Authentication-Results: mx.example.net; spf=pass …; dkim=pass …; dmarc=pass …"></textarea></div><div class="actions"><button class="btn primary" id="header-analyze">Read results</button><button class="text-btn" data-clear="header-input" data-result="header-result">Clear</button></div><div class="result" id="header-result" aria-live="polite"></div></div>
+        </section>
+        <section class="panel" id="subject-panel" role="tabpanel" aria-labelledby="subject-tab" hidden>
+          <div class="panel-head"><h2>Subject line preflight</h2><p>A quick heuristic review for length, shouting, punctuation and common promotional language. It cannot predict inbox placement.</p></div>
+          <div class="panel-body"><div class="field"><label for="subject-input">Email subject</label><input id="subject-input" maxlength="160" placeholder="Quick question about your email setup" /></div><div class="meter" aria-hidden="true"><span id="subject-meter"></span></div><div class="meter-label"><span id="subject-count">0</span> characters · aim for roughly 30–60</div><div class="actions" style="margin-top:18px"><button class="btn primary" id="subject-analyze">Review subject</button><button class="text-btn" data-clear="subject-input" data-result="subject-result">Clear</button></div><div class="result" id="subject-result" aria-live="polite"></div></div>
+        </section>
+        <section class="panel" id="contact-panel" role="tabpanel" aria-labelledby="contact-tab" hidden>
+          <div class="panel-head"><h2>Get help with setup</h2><p>Describe the authentication problem and create a ready-to-send email directly to Saqib — or message on WhatsApp for the fastest reply.</p></div>
+          <div class="panel-body">
+            <div class="field-row"><div class="field"><label for="help-name">Your name</label><input id="help-name" autocomplete="name" placeholder="Your name" /></div><div class="field"><label for="help-domain">Domain</label><input id="help-domain" inputmode="url" placeholder="example.com" /></div></div>
+            <div class="field"><label for="help-type">What needs attention?</label><select id="help-type"><option>SPF setup or repair</option><option>DKIM setup or repair</option><option>DMARC rollout</option><option>Full deliverability review</option><option>Other email setup</option></select></div>
+            <div class="field"><label for="help-details">Details</label><textarea id="help-details" placeholder="Tell me which sending platforms you use and what is going wrong."></textarea></div>
+            <div class="actions"><a class="btn primary" id="help-email" href="mailto:saqibnaseer077@gmail.com?subject=Email%20authentication%20help">Create email</a><a class="btn" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20need%20help%20with%20my%20email%20setup." target="_blank" rel="noopener">WhatsApp: +92 303 5544889</a></div>
+            <div class="service-note"><strong>Direct contact</strong><br>saqibnaseer077@gmail.com<br>+92 303 5544889</div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <section class="section" id="services" aria-labelledby="services-title">
+      <div class="section-head">
+        <h2 id="services-title">Done-for-you deliverability services</h2>
+        <p>The tools above are free forever. If you'd rather have an expert set everything up correctly, pick a package — you work with me directly, no agency in between.</p>
+      </div>
+      <div class="price-grid">
+        <div class="price-card">
+          <h3>Deliverability Audit</h3>
+          <div class="price">$49 <span>one-time</span></div>
+          <ul>
+            <li>Full SPF, DKIM &amp; DMARC record audit</li>
+            <li>Email header &amp; authentication review</li>
+            <li>Written report with fixes in priority order</li>
+            <li>Delivered within 48 hours</li>
+          </ul>
+          <a class="btn" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%27d%20like%20the%20%2449%20deliverability%20audit%20for%20my%20domain." target="_blank" rel="noopener">Order on WhatsApp</a>
+        </div>
+        <div class="price-card featured">
+          <span class="price-flag">Most popular</span>
+          <h3>Full Authentication Setup</h3>
+          <div class="price">$149 <span>one-time</span></div>
+          <ul>
+            <li>SPF, DKIM &amp; DMARC configured for your domain</li>
+            <li>Google Workspace / Instantly.ai sending setup</li>
+            <li>Deliverability testing before handover</li>
+            <li>7 days of post-setup support</li>
+          </ul>
+          <a class="btn primary" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%27d%20like%20the%20%24149%20full%20authentication%20setup." target="_blank" rel="noopener">Order on WhatsApp</a>
+        </div>
+        <div class="price-card">
+          <h3>Monthly Monitoring</h3>
+          <div class="price">$29 <span>/ month</span></div>
+          <ul>
+            <li>Ongoing DMARC report monitoring</li>
+            <li>Blacklist &amp; reputation checks</li>
+            <li>Alerts when something breaks</li>
+            <li>Cancel anytime</li>
+          </ul>
+          <a class="btn" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%27m%20interested%20in%20monthly%20deliverability%20monitoring." target="_blank" rel="noopener">Order on WhatsApp</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="about" aria-labelledby="about-title">
+      <div class="section-head"><h2 id="about-title">About</h2></div>
+      <div class="about-card">
+        <div class="avatar" aria-hidden="true">S</div>
+        <div>
+          <h3>Hi, I'm Saqib Naseer Khan.</h3>
+          <p>I'm a freelance <strong>email deliverability specialist</strong>. I set up SPF, DKIM and DMARC, configure Google Workspace and Instantly.ai for cold emailers, and fix the authentication issues that send legitimate emails to spam.</p>
+          <p>You'll work with me directly — <strong>no agency, no account managers, no markup</strong>. Message me on WhatsApp and I'll usually reply within a few hours.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="guides" aria-labelledby="guides-title">
+      <div class="section-head">
+        <h2 id="guides-title">Deliverability guides</h2>
+        <p>Plain-language explainers on the records and reputation signals that decide whether your email reaches the inbox.</p>
+      </div>
+      <div class="guide-grid">
+        <a class="guide-card" href="/guides/google-workspace-spf-dkim-dmarc-setup.html">
+          <div class="kicker">Guide · Google Workspace</div>
+          <h3>Google Workspace SPF, DKIM &amp; DMARC setup: the exact clicks</h3>
+          <p>From unsigned mail to full authentication — admin console clicks plus copy-paste DNS records.</p>
+          <span class="go">Read the guide →</span>
+        </a>
+        <a class="guide-card" href="/guides/zendesk-spf-suspended-tickets.html">
+          <div class="kicker">News · SPF</div>
+          <h3>Zendesk is now silently suspending emails with broken SPF</h3>
+          <p>Since Sept 23, 2026, failed SPF without valid DKIM lands in the Suspended tickets view. Check your setup in 30 seconds.</p>
+          <span class="go">Read the post →</span>
+        </a>
+        <a class="guide-card" href="/guides/spf-explained.html">
+          <div class="kicker">Guide · SPF</div>
+          <h3>SPF records explained: syntax, lookups &amp; the 10-lookup limit</h3>
+          <p>What each part of an SPF record does, why too many includes break delivery, and how to stay under the limit.</p>
+          <span class="go">Read the guide →</span>
+        </a>
+        <a class="guide-card" href="/guides/dmarc-guide.html">
+          <div class="kicker">Guide · DMARC</div>
+          <h3>DMARC rollout: from p=none to p=reject without breaking mail flow</h3>
+          <p>Policies, alignment modes, and aggregate reports — a safe step-by-step path to full enforcement.</p>
+          <span class="go">Read the guide →</span>
+        </a>
+        <a class="guide-card" href="/guides/dkim-explained.html">
+          <div class="kicker">Guide · DKIM</div>
+          <h3>DKIM explained: signatures, selectors &amp; DNS records</h3>
+          <p>How DKIM proves your email is genuine and unaltered — plus the mistakes that silently break it.</p>
+          <span class="go">Read the guide →</span>
+        </a>
+        <a class="guide-card" href="/guides/why-emails-go-to-spam.html">
+          <div class="kicker">Guide · Deliverability</div>
+          <h3>Why your cold emails go to spam (and how authentication fixes it)</h3>
+          <p>Authentication, reputation, content and list hygiene — the four levers that decide inbox placement.</p>
+          <span class="go">Read the guide →</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="section" id="faq" aria-labelledby="faq-title">
+      <div class="section-head">
+        <h2 id="faq-title">Questions, answered</h2>
+        <p>Straight answers on email authentication and deliverability — no jargon.</p>
+      </div>
+      <div class="faq-list">
+        <details>
+          <summary>Why are my emails going to spam if I'm not a spammer?</summary>
+          <p>Spam filters don't know you're legitimate — they judge signals. The most common technical cause is broken or missing email authentication (SPF, DKIM, DMARC). Beyond that, sender reputation, email content, and list quality all play a role. Start with the free audit tools above: authentication is the fastest thing to check and fix.</p>
+        </details>
+        <details>
+          <summary>Do I need SPF, DKIM, and DMARC — or is one enough?</summary>
+          <p>You need all three. SPF authorizes which servers may send for your domain, DKIM proves messages are genuine and unaltered, and DMARC ties them together with a policy for handling failures. Gmail and other major providers increasingly expect all three, especially from bulk senders.</p>
+        </details>
+        <details>
+          <summary>Will fixing authentication guarantee inbox placement?</summary>
+          <p>Honestly: no, but it's the foundation everything else builds on. Authentication gets you past the technical filters; inbox placement also depends on your sender reputation, content, and how recipients engage with your emails. Fix authentication first — it's the quickest win — then work on the rest.</p>
+        </details>
+        <details>
+          <summary>Do these tools change my DNS records?</summary>
+          <p>No. The tools analyze records you paste in and tell you what's wrong in plain language. Any changes happen in your own DNS panel (or your domain registrar), so you're always in control.</p>
+        </details>
+        <details>
+          <summary>How long does it take to fix deliverability?</summary>
+          <p>Fixing the records themselves takes minutes; DNS changes usually propagate within a few hours. Rebuilding a damaged sender reputation takes longer — days to weeks of consistent, clean sending. That's why catching authentication problems early matters.</p>
+        </details>
+        <details>
+          <summary>How is this different from hiring an outbound agency?</summary>
+          <p>Agencies run your entire outbound system — lists, copy, sending, iteration — typically for $500+/month. OutboundAuth is the affordable path: free diagnostics and guides so you can fix things yourself, plus one-time expert help (audit, full setup, monitoring) when you want a specialist to handle the authentication side.</p>
+        </details>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div>
+        <p>Results are guidance, not a replacement for testing with your sending provider.</p>
+        <p style="margin-top:6px">Contact: saqibnaseer077@gmail.com · +92 303 5544889</p>
+      </div>
+      <nav aria-label="Legal">
+        <a href="/guides/spf-explained.html">SPF guide</a>
+        <a href="/guides/dmarc-guide.html">DMARC guide</a>
+        <a href="/privacy.html">Privacy</a>
+        <a href="/terms.html">Terms</a>
+      </nav>
+    </footer>
+  </div>
+
+  <nav class="scroll-rail" aria-label="Page sections">
+    <span class="rail-track" aria-hidden="true"><span class="rail-fill"></span></span>
+    <a class="rail-dot" href="#hero" data-target="hero" aria-label="Back to top"><span class="rail-label">Top</span><span class="dot"></span></a>
+    <a class="rail-dot" href="#toolkit" data-target="toolkit" aria-label="Go to toolkit"><span class="rail-label">Toolkit</span><span class="dot"></span></a>
+    <a class="rail-dot" href="#services" data-target="services" aria-label="Go to services"><span class="rail-label">Services</span><span class="dot"></span></a>
+    <a class="rail-dot" href="#guides" data-target="guides" aria-label="Go to guides"><span class="rail-label">Guides</span><span class="dot"></span></a>
+    <a class="rail-dot" href="#faq" data-target="faq" aria-label="Go to FAQ"><span class="rail-label">FAQ</span><span class="dot"></span></a>
+  </nav>
+
+  <a class="wa-float" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20need%20help%20with%20my%20email%20setup." target="_blank" rel="noopener" aria-label="Chat on WhatsApp">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3C9.4 3 4 8.4 4 15c0 2.4.7 4.6 2 6.6L4 29l7.6-2c2 .9 4.1 1.5 6.4 1.5 6.6 0 12-5.4 12-12S22.6 3 16 3zm0 21.8c-2 0-3.9-.5-5.5-1.5l-.4-.2-4.5 1.2 1.2-4.4-.3-.4c-1-1.7-1.6-3.7-1.6-5.7C4.9 9.4 10.4 4 16 4s11.1 5.4 11.1 11S21.6 24.8 16 24.8zm6.1-8.1c-.3-.2-1.9-1-2.2-1.1-.3-.1-.5-.2-.7.2-.2.3-.8 1.1-1 1.3-.2.2-.4.2-.7.1-.3-.2-1.4-.5-2.6-1.6-.9-.9-1.6-1.9-1.8-2.2-.2-.3 0-.5.1-.7l.5-.6c.2-.2.2-.3.3-.6.1-.2 0-.4 0-.6-.1-.2-.7-1.8-1-2.4-.3-.6-.5-.5-.7-.6h-.6c-.2 0-.6.2-.9.4-.3.3-1.1 1.1-1.1 2.7s1.2 3.1 1.3 3.4c.2.2 2.2 3.4 5.4 4.7.8.3 1.3.5 1.8.7.8.2 1.4.2 2 .1.6-.1 1.9-.8 2.2-1.5.3-.7.3-1.4.2-1.5-.1-.2-.3-.2-.7-.4z"/></svg>
+  </a>
+
+  <script>
+    (function(){"use strict";
+      var $=function(id){return document.getElementById(id);};
+      function esc(s){return String(s).replace(/[&<>'"]/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'})[c];});}
+      function finding(level,title,detail){return '<li class="finding '+level+'"><span class="mark">'+(level==='ok'?'✓':level==='warn'?'!':'×')+'</span><div><strong>'+esc(title)+'</strong><span>'+esc(detail)+'</span></div></li>';}
+      function renderResult(id,score,level,title,subtitle,findings,extras){var el=$(id);el.innerHTML='<div class="scoreline"><div class="score '+level+'">'+score+'</div><div class="score-copy"><h3>'+esc(title)+'</h3><p>'+esc(subtitle)+'</p></div></div><ul class="findings">'+findings.join('')+'</ul>'+(extras||'');el.classList.add('visible');}
+      function parseTags(value){var tags={};value.split(';').forEach(function(part){var i=part.indexOf('=');if(i>-1)tags[part.slice(0,i).trim().toLowerCase()]=part.slice(i+1).trim();});return tags;}
+      function copyText(text,button){if(!text)return;navigator.clipboard.writeText(text).then(function(){var old=button.textContent;button.textContent='Copied';window.setTimeout(function(){button.textContent=old;},1400);}).catch(function(){button.textContent='Select text';});}
+      function recordBox(text){return '<div class="record-box"><code>'+esc(text)+'</code><button class="copy-btn" data-copy="'+esc(text)+'">Copy</button></div>';}
+      function activateTab(panelId){var btn=document.querySelector('.nav-btn[aria-controls="'+panelId+'"]');if(btn)btn.click();}
+      document.querySelectorAll('.nav-btn').forEach(function(btn){btn.addEventListener('click',function(){document.querySelectorAll('.nav-btn').forEach(function(b){b.setAttribute('aria-selected','false');});document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');p.hidden=true;});btn.setAttribute('aria-selected','true');var panel=$(btn.getAttribute('aria-controls'));panel.hidden=false;panel.classList.add('active');if(window.innerWidth<821)panel.scrollIntoView({block:'start'});});});
+      document.querySelectorAll('[data-goto-tab]').forEach(function(link){link.addEventListener('click',function(e){e.preventDefault();activateTab(link.getAttribute('data-goto-tab'));var ws=$('toolkit');if(ws)ws.scrollIntoView({behavior:'smooth',block:'start'});});});
+      document.addEventListener('click',function(e){var copy=e.target.closest('[data-copy]');if(copy)copyText(copy.getAttribute('data-copy'),copy);});
+      document.querySelectorAll('[data-clear]').forEach(function(btn){btn.addEventListener('click',function(){$(btn.getAttribute('data-clear')).value='';var result=$(btn.getAttribute('data-result'));result.classList.remove('visible');result.innerHTML='';if(btn.getAttribute('data-clear')==='subject-input')updateSubjectMeter();});});
+      $('spf-analyze').addEventListener('click',function(){var value=$('spf-input').value.trim().replace(/^['"]|['"]$/g,''),f=[],points=100;if(!value){renderResult('spf-result','—','bad','Paste a record first','Use the TXT value shown in your DNS panel.',[finding('bad','No SPF value found','The field is empty.')]);return;}var tokens=value.split(/\s+/),versions=tokens.filter(function(t){return t.toLowerCase()==='v=spf1';}).length;if(versions===1&&tokens[0].toLowerCase()==='v=spf1')f.push(finding('ok','Version tag is in place','The record begins with v=spf1.'));else{f.push(finding('bad','Invalid SPF version placement','Use one v=spf1 tag at the very beginning.'));points-=35;}var endings=tokens.filter(function(t){return /^[+?~-]?all$/i.test(t);});if(endings.length!==1){f.push(finding('bad','Default policy is missing or repeated','End with exactly one all mechanism.'));points-=30;}else if(endings[0]==='-all')f.push(finding('ok','Strong default policy','-all tells receivers to fail unauthorized sources.'));else if(endings[0]==='~all'){f.push(finding('warn','Soft-fail policy','~all is useful during testing but is weaker than -all.'));points-=12;}else{f.push(finding('warn','Non-enforcing default','?all or +all does not protect the domain from unauthorized senders.'));points-=25;}if(endings.length&&tokens[tokens.length-1]!==endings[endings.length-1]){f.push(finding('warn','Mechanisms appear after all','Anything after an all mechanism will not be evaluated.'));points-=10;}var lookups=tokens.filter(function(t){return /^(?:[+?~-])?(include:|a(?::|\/|$)|mx(?::|\/|$)|exists:|redirect=)/i.test(t);});if(lookups.length<=7)f.push(finding('ok',lookups.length+' direct DNS lookups declared','Nested includes can add more; the full evaluated total must stay at 10 or fewer.'));else if(lookups.length<=10){f.push(finding('warn',lookups.length+' direct DNS lookups declared','You are close to the limit even before nested includes are counted.'));points-=18;}else{f.push(finding('bad',lookups.length+' direct DNS lookups declared','This already exceeds SPF’s 10-lookup limit.'));points-=35;}if(tokens.some(function(t){return /^ptr(?::|$)/i.test(t);})) {f.push(finding('warn','PTR mechanism found','PTR is discouraged because it is slow and unreliable.'));points-=12;}var unknown=tokens.slice(1).filter(function(t){return !/^(?:[+?~-])?(?:all$|include:|a(?::|\/|$)|mx(?::|\/|$)|ip4:|ip6:|exists:)|^(?:redirect|exp)=/i.test(t);});if(unknown.length){f.push(finding('warn','Unrecognized terms','Review: '+unknown.join(', ')));points-=12;}points=Math.max(0,points);renderResult('spf-result',String(points),points>=85?'ok':points>=60?'warn':'bad',points>=85?'Record looks structurally sound':points>=60?'Review before publishing':'Record needs attention','This is a syntax and policy review of the pasted value.',f,'<div class="mini-grid"><div class="mini-stat"><strong>'+tokens.length+'</strong><span>terms</span></div><div class="mini-stat"><strong>'+lookups.length+'</strong><span>direct lookups</span></div><div class="mini-stat"><strong>'+value.length+'</strong><span>characters</span></div></div>');});
+      $('spf-build').addEventListener('click',function(){var includes=$('spf-includes').value.trim().split(/\s+/).filter(Boolean).map(function(x){return 'include:'+x.replace(/^include:/i,'');}),ips=$('spf-ips').value.trim().split(/\s+/).filter(Boolean).map(function(x){return 'ip4:'+x.replace(/^ip4:/i,'');}),record=['v=spf1'].concat(includes,ips,[$('spf-ending').value]).join(' ');$('spf-built').innerHTML=recordBox(record);});
+      $('dmarc-analyze').addEventListener('click',function(){var value=$('dmarc-input').value.trim().replace(/^['"]|['"]$/g,'');if(!value){renderResult('dmarc-result','—','bad','Paste a record first','Use the TXT value at _dmarc.yourdomain.',[finding('bad','No DMARC value found','The field is empty.')]);return;}var tags=parseTags(value),f=[],points=100;if((tags.v||'').toUpperCase()==='DMARC1'&&value.trim().toLowerCase().indexOf('v=dmarc1')===0)f.push(finding('ok','Version tag is valid','The record begins with v=DMARC1.'));else{f.push(finding('bad','Version tag is invalid','Put v=DMARC1 first.'));points-=35;}if(['none','quarantine','reject'].indexOf((tags.p||'').toLowerCase())>-1){if(tags.p.toLowerCase()==='reject')f.push(finding('ok','Reject policy enabled','Unauthenticated mail is requested to be rejected.'));else if(tags.p.toLowerCase()==='quarantine')f.push(finding('ok','Quarantine policy enabled','Unauthenticated mail is requested to be quarantined.'));else{f.push(finding('warn','Monitoring-only policy','p=none collects data but does not request enforcement.'));points-=20;}}else{f.push(finding('bad','Required policy is missing','Add p=none, p=quarantine or p=reject.'));points-=35;}var pct=tags.pct===undefined?100:Number(tags.pct);if(!Number.isFinite(pct)||pct<0||pct>100){f.push(finding('bad','Invalid percentage','pct must be from 0 to 100.'));points-=20;}else if(pct<100){f.push(finding('warn','Partial rollout at '+pct+'%','Only part of the mail stream is covered by the requested policy.'));points-=8;}else f.push(finding('ok','Full policy coverage','pct is 100, explicitly or by default.'));if(tags.rua)f.push(finding('ok','Aggregate reports configured','Reports are requested at the rua destination.'));else{f.push(finding('warn','No aggregate report inbox','Add rua=mailto:... to receive visibility into authentication.'));points-=10;}f.push(finding('ok','Alignment modes understood','DKIM '+((tags.adkim||'r')==='s'?'strict':'relaxed')+', SPF '+((tags.aspf||'r')==='s'?'strict':'relaxed')+'.'));points=Math.max(0,points);renderResult('dmarc-result',String(points),points>=85?'ok':points>=60?'warn':'bad',points>=85?'DMARC is well formed':points>=60?'Valid, with room to strengthen':'Record needs attention','Policy review of the pasted value.',f);});
+      $('dmarc-build').addEventListener('click',function(){var pct=Math.max(0,Math.min(100,Number($('dmarc-pct').value)||0)),parts=['v=DMARC1','p='+$('dmarc-policy').value,'pct='+pct,'adkim='+$('dmarc-adkim').value,'aspf='+$('dmarc-aspf').value],rua=$('dmarc-rua').value.trim();if(rua)parts.push('rua=mailto:'+rua.replace(/^mailto:/i,''));var value=parts.join('; ')+';';$('dmarc-built').innerHTML='<div class="record-box"><code>Host: _dmarc<br>Value: '+esc(value)+'</code><button class="copy-btn" data-copy="'+esc(value)+'">Copy value</button></div>';});
+      $('dkim-analyze').addEventListener('click',function(){var value=$('dkim-input').value.trim().replace(/^['"]|['"]$/g,''),selector=$('dkim-selector').value.trim(),domain=$('dkim-domain').value.trim();if(!value){renderResult('dkim-result','—','bad','Paste a record first','Use the DKIM TXT value from your provider.',[finding('bad','No DKIM value found','The field is empty.')]);return;}var tags=parseTags(value),f=[],points=100;if(!tags.v||tags.v.toUpperCase()==='DKIM1')f.push(finding('ok','Version is acceptable',tags.v?'v=DKIM1 is present.':'DKIM1 is the default when the tag is omitted.'));else{f.push(finding('bad','Unexpected DKIM version','Use v=DKIM1.'));points-=30;}var keyType=(tags.k||'rsa').toLowerCase();if(['rsa','ed25519'].indexOf(keyType)>-1)f.push(finding('ok','Recognized key type',keyType+' key declared.'));else{f.push(finding('warn','Unrecognized key type','Check the k= tag with your provider.'));points-=15;}if(tags.p===undefined){f.push(finding('bad','Public key tag is missing','Add the p= value supplied by your email provider.'));points-=45;}else if(!tags.p){f.push(finding('bad','Public key is revoked','An empty p= tag means the key is revoked.'));points-=45;}else if(/\s/.test(tags.p)){f.push(finding('warn','Whitespace inside the key','Remove copied spaces or line breaks from the public key value.'));points-=20;}else f.push(finding('ok','Public key is present',tags.p.length+' key characters found.'));var name=selector&&domain?selector+'._domainkey.'+domain:selector?selector+'._domainkey':'';if(name)f.push(finding('ok','Expected DNS host',name));else f.push(finding('warn','Selector or domain not supplied','Add them above to confirm the expected DNS hostname.'));points=Math.max(0,points);renderResult('dkim-result',String(points),points>=85?'ok':points>=60?'warn':'bad',points>=85?'DKIM record looks usable':'Review the record','Structural review only; cryptographic verification requires a signed email.',f,name?recordBox(name):'');});
+      $('header-analyze').addEventListener('click',function(){var value=$('header-input').value.trim();if(!value){renderResult('header-result','—','bad','Paste headers first','Open “show original” or “view source” in your email client.',[finding('bad','No header text found','The field is empty.')]);return;}var lines=value.match(/(?:Authentication-Results|ARC-Authentication-Results):[\s\S]*?(?=\n[^\s]|$)/gi)||[],source=lines.join(' '),protocols=['spf','dkim','dmarc'],f=[],pass=0;protocols.forEach(function(name){var match=source.match(new RegExp('\\b'+name+'=(pass|fail|softfail|neutral|none|temperror|permerror)','i'));if(!match)f.push(finding('warn',name.toUpperCase()+' result not found','This header may not include an Authentication-Results verdict.'));else if(match[1].toLowerCase()==='pass'){pass++;f.push(finding('ok',name.toUpperCase()+'=pass','The receiving server recorded '+name.toUpperCase()+'=pass.'));}else f.push(finding('bad',name.toUpperCase()+' returned '+match[1].toLowerCase(),'Investigate the matching sender, domain and DNS configuration.'));});var score=Math.round(pass/3*100);renderResult('header-result',String(score),pass===3?'ok':pass>=1?'warn':'bad',pass===3?'All three checks passed':pass?'Some checks need attention':'No passing verdicts found','Read from the pasted Authentication-Results header.',f);});
+      function updateHelpLink(){var name=$('help-name').value.trim(),domain=$('help-domain').value.trim(),type=$('help-type').value,details=$('help-details').value.trim(),subject='Email authentication help'+(domain?' — '+domain:''),body='Name: '+(name||'Not provided')+'\nDomain: '+(domain||'Not provided')+'\nHelp needed: '+type+'\n\nDetails:\n'+(details||'Not provided');$('help-email').href='mailto:saqibnaseer077@gmail.com?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);}
+      ['help-name','help-domain','help-type','help-details'].forEach(function(id){$(id).addEventListener('input',updateHelpLink);$(id).addEventListener('change',updateHelpLink);});updateHelpLink();
+      function updateSubjectMeter(){var n=$('subject-input').value.length;$('subject-count').textContent=n;$('subject-meter').style.width=Math.min(100,n/80*100)+'%';$('subject-meter').style.background=n>=30&&n<=60?'var(--ok)':n>80?'var(--bad)':'var(--warn)';}
+      $('subject-input').addEventListener('input',updateSubjectMeter);
+      $('subject-analyze').addEventListener('click',function(){var value=$('subject-input').value.trim();if(!value){renderResult('subject-result','—','bad','Enter a subject first','Write the exact subject you plan to send.',[finding('bad','No subject found','The field is empty.')]);return;}var f=[],points=100,n=value.length;if(n>=30&&n<=60)f.push(finding('ok','Useful length',n+' characters is concise and descriptive.'));else if(n<20){f.push(finding('warn','Very short subject',n+' characters may not give enough context.'));points-=12;}else if(n>80){f.push(finding('warn','Long subject',n+' characters may be cut off in many inboxes.'));points-=18;}else f.push(finding('ok','Reasonable length',n+' characters.'));var letters=value.match(/[A-Za-z]/g)||[],caps=value.match(/[A-Z]/g)||[],ratio=letters.length?caps.length/letters.length:0;if(ratio>.55&&letters.length>6){f.push(finding('warn','Too much capitalization','Sentence case usually feels more natural.'));points-=20;}else f.push(finding('ok','Capitalization looks natural','No excessive uppercase pattern found.'));var bangs=(value.match(/[!?]/g)||[]).length;if(bangs>1){f.push(finding('warn','Heavy punctuation',bangs+' exclamation or question marks can look promotional.'));points-=14;}else f.push(finding('ok','Punctuation is restrained','No excessive exclamation or question marks.'));var terms=['free','guaranteed','act now','urgent','winner','cash','limited time','100%','risk-free','buy now'],hits=terms.filter(function(t){return value.toLowerCase().indexOf(t)>-1;});if(hits.length){f.push(finding('warn','Promotional phrasing detected','Review: '+hits.join(', ')+'. Context matters; no single word guarantees spam filtering.'));points-=Math.min(25,hits.length*9);}else f.push(finding('ok','No obvious promotional phrases','The small heuristic list found no match.'));points=Math.max(0,points);renderResult('subject-result',String(points),points>=85?'ok':points>=60?'warn':'bad',points>=85?'Clean first impression':'Worth a quick rewrite','Heuristic review only; deliverability depends on far more than the subject.',f);});
+      updateSubjectMeter();
+      /* ---------- Domain health report: live DNS via DNS-over-HTTPS ---------- */
+      var HEALTH_SELECTORS=['default','google','selector1','selector2','s1','s2','k1','k2','mail','dkim'];
+      var HEALTH_RBLS=['zen.spamhaus.org','bl.spamcop.net','psbl.surriel.com','dnsbl-1.uceprotect.net','bl.mailspike.net','dnsbl.dronebl.org','ubl.unsubscore.com'];
+      function cleanDomain(raw){var d=String(raw||'').trim().toLowerCase().replace(/^https?:\/\//,'').replace(/^www\./,'').split('/')[0].split('?')[0].split('#')[0].split(':')[0].trim();return/^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)*\.[a-z]{2,}$/.test(d)?d:'';}
+      function dohParse(j){if(!j||typeof j.Status!=='number')return{ok:false};if(j.Status!==0)return{ok:true,answers:[]};var out=[];(j.Answer||[]).forEach(function(a){if(a&&a.data)out.push({t:a.type,d:String(a.data).replace(/"/g,'')});});return{ok:true,answers:out};}
+      function dohOne(name,type,viaCF){
+        var enc=encodeURIComponent(name);
+        var url=viaCF?'https://cloudflare-dns.com/dns-query?name='+enc+'&type='+type:'https://dns.google/resolve?name='+enc+'&type='+type;
+        var opts=viaCF?{headers:{'Accept':'application/dns-json'}}:{};
+        return fetch(url,opts).then(function(r){if(!r.ok)throw 0;return r.json();}).then(dohParse).catch(function(){return{ok:false};});
+      }
+      function doh(name,type){
+        return Promise.all([dohOne(name,type,false),dohOne(name,type,true)]).then(function(rs){
+          var i;
+          for(i=0;i<rs.length;i++)if(rs[i].ok&&rs[i].answers.length)return rs[i];
+          for(i=0;i<rs.length;i++)if(rs[i].ok)return rs[i];
+          return{ok:false};
+        });
+      }
+      function healthSpf(answers,domain){
+        var f=[],points=100,rec=(answers||[]).filter(function(a){return a.t===16&&/^v=spf1/i.test(a.d);})[0],txt=rec?rec.d:null;
+        if(!txt){f.push(finding('bad','No SPF record published','No TXT record starting with v=spf1 was found for '+domain+'.'));return{points:25,findings:f};}
+        var tokens=txt.split(/\s+/);
+        f.push(finding('ok','SPF record found','The record begins with v=spf1.'));
+        var endings=tokens.filter(function(t){return/^[+?~-]?all$/i.test(t);});
+        if(endings.length!==1){f.push(finding('bad','Default policy is missing or repeated','End the record with exactly one all mechanism.'));points-=30;}
+        else if(endings[0]==='-all')f.push(finding('ok','Strong default policy','-all tells receivers to fail unauthorized sources.'));
+        else if(endings[0]==='~all'){f.push(finding('warn','Soft-fail policy','~all is fine for testing but weaker than -all.'));points-=12;}
+        else{f.push(finding('warn','Non-enforcing default policy','?all or +all does not protect the domain from unauthorized senders.'));points-=25;}
+        var lookups=tokens.filter(function(t){return/^(?:[+?~-])?(include:|a(?::|\/|$)|mx(?::|\/|$)|exists:|redirect=)/i.test(t);});
+        if(lookups.length<=7)f.push(finding('ok','DNS lookup count is safe',lookups.length+' direct lookups declared; the limit is 10 including nested includes.'));
+        else if(lookups.length<=10){f.push(finding('warn','Close to the SPF lookup limit',lookups.length+' direct lookups declared — nested includes may push it over 10.'));points-=18;}
+        else{f.push(finding('bad','Over the SPF lookup limit',lookups.length+' direct lookups already exceed the limit of 10.'));points-=45;}
+        if(tokens.some(function(t){return/^ptr(?::|$)/i.test(t);})){f.push(finding('warn','PTR mechanism found','PTR is slow and unreliable — avoid it.'));points-=12;}
+        points=Math.max(0,points);
+        return{points:points,findings:f};
+      }
+      function healthDmarc(answers,domain){
+        var f=[],points=100,rec=(answers||[]).filter(function(a){return a.t===16&&/^\s*v=DMARC1/i.test(a.d);})[0],txt=rec?rec.d:null;
+        if(!txt){f.push(finding('bad','No DMARC record published','No TXT record at _dmarc.'+domain+' was found.'));return{points:40,findings:f};}
+        var tags=parseTags(txt);
+        f.push(finding('ok','DMARC record found','Version tag v=DMARC1 is valid.'));
+        var p=(tags.p||'').toLowerCase();
+        if(p==='reject')f.push(finding('ok','Reject policy enabled','Unauthenticated mail is requested to be rejected.'));
+        else if(p==='quarantine')f.push(finding('ok','Quarantine policy enabled','Unauthenticated mail is requested to be quarantined.'));
+        else if(p==='none'){f.push(finding('warn','Monitoring-only policy','p=none collects data but does not request enforcement.'));points-=20;}
+        else{f.push(finding('bad','Policy is missing or invalid','Add p=none, p=quarantine or p=reject.'));points-=35;}
+        if(tags.rua)f.push(finding('ok','Aggregate reports configured','DMARC reports are requested at the rua destination.'));
+        else{f.push(finding('warn','No aggregate report inbox','Add rua=mailto:… to see who sends as your domain.'));points-=10;}
+        points=Math.max(0,points);
+        return{points:points,findings:f};
+      }
+      function healthDkim(domain){
+        function checkSelector(sel){
+          return doh(sel+'._domainkey.'+domain,'TXT').then(function(res){
+            if(!res.ok||!res.answers.length)return null;
+            var txt=res.answers.filter(function(a){return a.t===16&&/\bp=/.test(a.d);})[0];
+            if(txt)return{selector:sel,record:txt.d};
+            var cname=res.answers.filter(function(a){return a.t===5;})[0];
+            if(!cname)return null;
+            return doh(cname.d,'TXT').then(function(res2){
+              if(!res2.ok)return null;
+              var txt2=res2.answers.filter(function(a){return a.t===16&&/\bp=/.test(a.d);})[0];
+              return txt2?{selector:sel+' (via '+cname.d+')',record:txt2.d}:null;
+            });
+          });
+        }
+        return Promise.all(HEALTH_SELECTORS.map(checkSelector)).then(function(results){
+          var hits=results.filter(function(x){return!!x;}),f=[];
+          if(!hits.length){f.push(finding('warn','No DKIM record found for common selectors','Checked '+HEALTH_SELECTORS.length+' common selectors (google, selector1, default…). If you sign mail, confirm the selector with your email provider.'));return{points:50,findings:f};}
+          var tags=parseTags(hits[0].record);
+          if(!tags.p){f.push(finding('bad','DKIM key is missing or revoked','The p= tag is empty at '+hits[0].selector+'._domainkey.'));return{points:30,findings:f};}
+          f.push(finding('ok','DKIM record found','Selector "'+hits[0].selector+'" publishes a public key ('+tags.p.length+' characters).'));
+          if(hits.length>1)f.push(finding('ok',hits.length+' selectors publish keys',hits.map(function(x){return x.selector;}).join(', ')));
+          return{points:100,findings:f};
+        });
+      }
+      function healthMx(answers){
+        var f=[],hosts=[];
+        (answers||[]).forEach(function(a){if(a.t!==15)return;var m=a.d.match(/^\s*(\d+)\s+(\S+)\.?$/);if(m)hosts.push({pri:Number(m[1]),host:m[2].replace(/\.$/,'')});});
+        hosts.sort(function(a,b){return a.pri-b.pri;});
+        if(!hosts.length){f.push(finding('warn','No MX records found','This domain cannot receive email. Sending is still possible without MX records.'));return{points:70,findings:f,hosts:hosts};}
+        f.push(finding('ok',hosts.length+' mail server'+(hosts.length>1?'s':'')+' found',hosts.map(function(h){return h.host+' (priority '+h.pri+')';}).join(', ')));
+        return{points:100,findings:f,hosts:hosts};
+      }
+      function healthBlacklist(domain,hosts){
+        function checkIp(ip,note){
+          var rev=ip.split('.').reverse().join('.');
+          return Promise.all(HEALTH_RBLS.map(function(z){
+            return doh(rev+'.'+z,'A').then(function(res){return{zone:z,res:res};});
+          })).then(function(results){
+            var f=[],checked=[],listed=[];
+            results.forEach(function(x){
+              if(!x.res.ok)return;
+              checked.push(x.zone);
+              var real=(x.res.answers||[]).filter(function(a){return a.t===1&&/^127\./.test(a.d)&&a.d!=='127.255.255.254';});
+              if(real.length)listed.push({zone:x.zone,codes:real.map(function(a){return a.d;})});
+            });
+            if(!checked.length){f.push(finding('warn','Blacklist check unavailable','The reputation lists could not be reached — try again later.'));return{points:null,findings:f};}
+            if(listed.length){listed.forEach(function(l){f.push(finding('bad','Listed on '+l.zone,'This IP is flagged ('+l.codes.join(', ')+'). Delisting requests go through each list operator.'));});return{points:20,findings:f};}
+            f.push(finding('ok','Not found on checked blacklists','Checked '+checked.join(', ')+' for '+ip+'.'));
+            return{points:100,findings:f};
+          }).then(function(r){r.findings.unshift(finding('ok','Sending IP identified',note));return r;});
+        }
+        function noIp(msg){return{points:null,findings:[finding('warn','No IP address found to check',msg)]};}
+        return doh(domain,'A').then(function(res){
+          var ip=res&&res.ok?(res.answers||[]).filter(function(a){return a.t===1&&/^\d+\.\d+\.\d+\.\d+$/.test(a.d);})[0]:null;
+          if(ip)return checkIp(ip.d,'Checking the reputation of '+ip.d+' (the IP '+domain+' points to). If you send from a different IP, verify that IP in your sending platform.');
+          if(hosts&&hosts.length)return doh(hosts[0].host,'A').then(function(res2){
+            var ip2=res2&&res2.ok?(res2.answers||[]).filter(function(a){return a.t===1&&/^\d+\.\d+\.\d+\.\d+$/.test(a.d);})[0]:null;
+            return ip2?checkIp(ip2.d,'Checking the reputation of '+ip2.d+' (mail server for '+domain+').'):noIp('Neither the domain nor its mail server has a public IPv4 address.');
+          });
+          return noIp('This domain has no public IPv4 address.');
+        });
+      }
+      function runHealthCheck(rawDomain){
+        var domain=cleanDomain(rawDomain),el=$('health-result');
+        if(!domain){renderResult('health-result','—','bad','Enter a valid domain','Example: example.com — no http://, no slashes.',[finding('bad','Invalid domain','Check the spelling and try again.')]);return;}
+        el.classList.add('visible');
+        el.innerHTML='<p class="health-loading">Checking live DNS records for '+esc(domain)+'…</p>';
+        Promise.all([doh(domain,'TXT'),doh('_dmarc.'+domain,'TXT'),doh(domain,'MX'),healthDkim(domain)]).then(function(r){
+          if(!r[0].ok&&!r[1].ok&&!r[2].ok){renderResult('health-result','—','bad','Check failed','Live DNS could not be reached from your browser.',[finding('bad','Could not reach DNS','Check your connection and try again.')]);return;}
+          var spf=healthSpf(r[0].ok?r[0].answers:null,domain);
+          var dmarc=healthDmarc(r[1].ok?r[1].answers:null,domain);
+          var mx=healthMx(r[2].ok?r[2].answers:null);
+          var dkim=r[3];
+          return healthBlacklist(domain,mx.hosts).then(function(bl){
+            var sections=[{w:30,r:spf},{w:25,r:dkim},{w:25,r:dmarc},{w:10,r:mx},{w:10,r:bl}];
+            var total=0,weight=0,all=[],pass=0,counted=0;
+            sections.forEach(function(s){
+              s.r.findings.forEach(function(x){all.push(x);});
+              if(s.r.points===null||s.r.points===undefined)return;
+              total+=s.r.points*s.w;weight+=s.w;counted++;
+              if(s.r.points>=85)pass++;
+            });
+            var score=weight?Math.round(total/weight):0;
+            var level=score>=85?'ok':score>=60?'warn':'bad';
+            var issues=all.filter(function(x){return x.indexOf('finding bad')>-1;}).length;
+            var title=score>=85?'Domain looks healthy':score>=60?'A few things to fix':'Needs attention';
+            var link='https://outboundauth.com/?domain='+encodeURIComponent(domain);
+            var extras='<div class="mini-grid"><div class="mini-stat"><strong>'+score+'</strong><span>health score</span></div><div class="mini-stat"><strong>'+pass+'/'+counted+'</strong><span>checks passing</span></div><div class="mini-stat"><strong>'+issues+'</strong><span>issues found</span></div></div>'
+              +'<div class="health-ctas"><button class="btn" data-copy="'+esc(link)+'">Copy report link</button>'
+              +(level==='ok'?'':'<a class="btn primary" href="https://wa.me/923035544889?text='+encodeURIComponent('Hi Saqib, I ran the domain health report for '+domain+' and found '+issues+' issue(s). Can you fix them?')+'" target="_blank" rel="noopener">Get my DNS fixed →</a>')
+              +'</div>';
+            renderResult('health-result',String(score),level,title,'Live DNS check of '+domain+' — SPF, DKIM, DMARC, mail servers and blacklist status.',all,extras);
+          });
+        }).catch(function(){
+          renderResult('health-result','—','bad','Check failed','The DNS lookup did not complete.',[finding('bad','Could not reach DNS','Check your connection and try again.')]);
+        });
+      }
+      $('health-run').addEventListener('click',function(){runHealthCheck($('health-domain').value);});
+      $('health-domain').addEventListener('keydown',function(e){if(e.key==='Enter')runHealthCheck($('health-domain').value);});
+      /* ---------- Scroll-spy section rail ---------- */
+      (function(){
+        var rail=document.querySelector('.scroll-rail');
+        if(!rail)return;
+        var links=Array.prototype.slice.call(rail.querySelectorAll('.rail-dot'));
+        var secs=links.map(function(a){return document.getElementById(a.getAttribute('data-target'));});
+        var fill=rail.querySelector('.rail-fill');
+        function update(){
+          var mid=window.innerHeight*0.35,idx=0;
+          secs.forEach(function(el,i){if(el&&el.getBoundingClientRect().top<=mid)idx=i;});
+          links.forEach(function(a,i){
+            var on=i===idx;
+            a.classList.toggle('active',on);
+            if(on)a.setAttribute('aria-current','true');else a.removeAttribute('aria-current');
+          });
+          if(fill)fill.style.height=(links.length>1?Math.round(idx/(links.length-1)*100):0)+'%';
+        }
+        var tick=false;
+        window.addEventListener('scroll',function(){if(tick)return;tick=true;requestAnimationFrame(function(){update();tick=false;});},{passive:true});
+        window.addEventListener('resize',update);
+        update();
+      })();
+      try{var shared=cleanDomain(new URLSearchParams(window.location.search).get('domain'));if(shared){activateTab('health-panel');$('health-domain').value=shared;runHealthCheck(shared);}}catch(e){}
+    }());
+  </script>
+<div id="cookie-banner" class="cookie-banner" hidden>
+  <p>We use cookies to understand site traffic and improve OutboundAuth. <a href="/privacy.html">Privacy Policy</a></p>
+  <div class="cookie-actions">
+    <button id="cookie-accept" type="button">Accept</button>
+    <button id="cookie-decline" type="button">Decline</button>
+  </div>
+</div>
+<script src="/consent.js"></script>
+</body>
+</html>

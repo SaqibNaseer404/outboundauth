@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="theme-color" content="#0b1715" />
+  <meta name="google-site-verification" content="lDGa9UqOTxwjHKAL1mI4PlN2ggJn2DVMSazM_CVMP5o" />
+  <meta name="description" content="Set up SPF, DKIM and DMARC for Google Workspace with the exact admin console clicks and copy-paste DNS records — from unsigned mail to full email authentication." />
+  <meta property="og:title" content="Google Workspace SPF, DKIM & DMARC Setup — OutboundAuth" />
+  <meta property="og:description" content="The exact clicks to authenticate your Google Workspace domain: SPF record, DKIM key generation, DNS records, and a safe DMARC start." />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://outboundauth.com/guides/google-workspace-spf-dkim-dmarc-setup.html" />
+  <meta name="twitter:card" content="summary" />
+  <meta property="og:image" content="https://outboundauth.com/og-cover.png" />
+  <link rel="canonical" href="https://outboundauth.com/guides/google-workspace-spf-dkim-dmarc-setup.html" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23087f5b'/%3E%3Cpath d='M20 33l9 9 15-17' stroke='white' stroke-width='6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="/styles.css" />
+  <title>Google Workspace SPF, DKIM &amp; DMARC Setup: Step-by-Step — OutboundAuth</title>
+<!-- Google Analytics 4 -->
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied'});
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-PLRGVLMB8S"></script>
+<script>
+gtag('js', new Date());
+gtag('config','G-PLRGVLMB8S');
+</script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="/"><span class="brand-mark">✓</span>OutboundAuth</a>
+      <nav class="topnav" aria-label="Site">
+        <a href="/#toolkit">Tools</a>
+        <a href="/#services">Pricing</a>
+        <a href="/#guides">Guides</a>
+        <a class="cta" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20need%20help%20with%20my%20email%20authentication." target="_blank" rel="noopener">WhatsApp me</a>
+      </nav>
+    </div>
+  </header>
+  <div class="shell">
+    <div class="article-wrap">
+      <a class="crumb" href="/#guides">← All guides</a>
+      <article class="article">
+        <div class="kicker">Guide · Google Workspace</div>
+        <h1>Google Workspace SPF, DKIM &amp; DMARC setup: the exact clicks</h1>
+        <p class="lede">Google Workspace sends your mail, but it does not authenticate it by default. SPF and DMARC live in your DNS and DKIM starts in the Admin console — here are the exact clicks and copy-paste records to get all three right.</p>
+
+        <h2>What are the three things you need to set up?</h2>
+        <p>Email authentication has three parts, and they belong in two different places:</p>
+        <ul>
+          <li><strong>SPF</strong> — a <span class="inline">TXT</span> record at your domain root, added in your <strong>DNS host</strong> (your registrar, not Google). It lists Google's servers as authorized senders.</li>
+          <li><strong>DKIM</strong> — a key generated in the <strong>Google Admin console</strong>, then published as a <span class="inline">TXT</span> record at <span class="inline">google._domainkey</span> in your <strong>DNS</strong>. Google then signs every outgoing email with your domain.</li>
+          <li><strong>DMARC</strong> — a <span class="inline">TXT</span> record at <span class="inline">_dmarc</span>, added in your <strong>DNS</strong>. It tells receivers what to do when SPF and DKIM fail.</li>
+        </ul>
+        <p>Do them in this order — SPF, then DKIM, then DMARC — and start DMARC in monitor mode. You'll need a super admin account for the Admin console steps.</p>
+
+        <h2>Step 1: Add the SPF record in your DNS</h2>
+        <p>Log in to your domain host (Spaceship, GoDaddy, Cloudflare, or wherever your name servers point) and find the DNS records page. Add this <span class="inline">TXT</span> record at the root of your domain (often labelled <span class="inline">@</span>):</p>
+        <div class="record-box"><code>v=spf1 include:_spf.google.com ~all</code></div>
+        <p>Two things to get right here. First, a domain can have <strong>only one SPF record</strong> — if you already have one from another sender (for example <span class="inline">include:mailgun.org</span>), merge the includes into a single record instead of adding a second. Second, <span class="inline">~all</span> (softfail) is Google's default and the safe choice to start; <span class="inline">-all</span> (hard fail) is stricter but can bounce mail from senders you forgot. See the <a href="/guides/spf-explained.html">SPF guide</a> for how the syntax works.</p>
+
+        <h2>Step 2: Generate your DKIM key in the Admin console</h2>
+        <p>Sign in to <span class="inline">admin.google.com</span> with a super admin account, then follow these clicks exactly:</p>
+        <ol>
+          <li>Go to <strong>Apps → Google Workspace → Gmail</strong>.</li>
+          <li>Click <strong>Authenticate email</strong>.</li>
+          <li>Select your domain from the dropdown.</li>
+          <li>Click <strong>Generate new record</strong>.</li>
+          <li>Set the DKIM key bit length to <strong>2048-bit</strong> (recommended) and leave the selector prefix as <span class="inline">google</span> unless you have a reason to change it.</li>
+          <li>Click <strong>Generate</strong>. Google shows you the DNS host name (<span class="inline">google._domainkey</span>) and the TXT record value — a long string containing your public key. Copy both; keep this tab open.</li>
+        </ol>
+
+        <h2>Step 3: Publish the DKIM record in DNS, then click "Start authentication"</h2>
+        <p>Back in your DNS host, add a <span class="inline">TXT</span> record with host <span class="inline">google._domainkey</span> and paste in the full key value Google generated. Paste the entire value — some DNS panels truncate long strings, and a cut-off key will not verify.</p>
+        <p>Then return to the Admin console (<strong>Gmail → Authenticate email</strong>) and click <strong>Start authentication</strong> for your domain. Google checks DNS for the key; propagation can take up to 48 hours, and if Google can't see the record yet, just wait and click again later. Once it succeeds, the status changes to "Authenticating email" and your outbound mail gets signed.</p>
+
+        <h2>Step 4: Add a DMARC record — start at p=none</h2>
+        <p>Add one more <span class="inline">TXT</span> record in your DNS, this time at host <span class="inline">_dmarc</span>:</p>
+        <div class="record-box"><code>v=DMARC1; p=none; rua=mailto:dmarc@yourdomain.com;</code></div>
+        <p>Replace <span class="inline">dmarc@yourdomain.com</span> with an inbox you control. Starting at <span class="inline">p=none</span> puts DMARC in monitor mode: receivers check your mail and send you aggregate reports, but take no action on failures. That's deliberate — you watch the reports for a week or two, confirm every legitimate sender passes, and only then move to <span class="inline">p=quarantine</span> and eventually <span class="inline">p=reject</span>. The <a href="/guides/dmarc-guide.html">DMARC rollout guide</a> covers that path in detail.</p>
+
+        <h2>How do I verify everything is working?</h2>
+        <p>Send a test email from your Workspace account to another inbox (a personal Gmail is fine), open the message, and view the original headers — look for <span class="inline">spf=pass</span>, <span class="inline">dkim=pass</span>, and <span class="inline">dmarc=pass</span> in the authentication results. For a readable breakdown, paste those headers into the <a href="/#toolkit">free email header analyzer</a>, and run the <a href="/#toolkit">SPF and DMARC audit tools</a> on your domain to review the records you published.</p>
+
+        <h2>What are the most common mistakes?</h2>
+        <ul>
+          <li><strong>Clicking "Start authentication" before DNS propagates.</strong> Google can't see the key yet. Wait, then click again — nothing breaks in the meantime.</li>
+          <li><strong>Publishing two SPF records.</strong> Multiple records invalidate SPF entirely; merge everything into one.</li>
+          <li><strong>Truncating the DKIM key when pasting.</strong> It's long — copy the whole value and confirm it saved in full.</li>
+          <li><strong>Starting DMARC at p=reject on day one.</strong> One forgotten sending service and its mail starts bouncing. Monitor first.</li>
+          <li><strong>Using -all while other tools also send.</strong> If a CRM or outreach tool sends as your domain, it must be in your SPF record or it will fail.</li>
+        </ul>
+
+        <div class="cta-box">
+          <h3>Want authentication done for you, correctly the first time?</h3>
+          <p>I set up SPF, DKIM and DMARC for Google Workspace and cold email sending tools — DNS records, key generation, verification, and monitoring.</p>
+          <a class="btn primary" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20read%20your%20Google%20Workspace%20setup%20guide%20and%20want%20help%20with%20authentication." target="_blank" rel="noopener">WhatsApp Saqib</a>
+          <a class="btn" href="/#services" style="margin-left:8px">See packages</a>
+        </div>
+      </article>
+    </div>
+    <footer class="footer">
+      <div>
+        <p>Results are guidance, not a replacement for testing with your sending provider.</p>
+        <p style="margin-top:6px">Contact: saqibnaseer077@gmail.com · +92 303 5544889</p>
+      </div>
+      <nav aria-label="Legal">
+        <a href="/guides/spf-explained.html">SPF guide</a>
+        <a href="/guides/dmarc-guide.html">DMARC guide</a>
+        <a href="/guides/dkim-explained.html">DKIM guide</a>
+        <a href="/guides/why-emails-go-to-spam.html">Spam guide</a>
+        <a href="/privacy.html">Privacy</a>
+        <a href="/terms.html">Terms</a>
+      </nav>
+    </footer>
+  </div>
+  <a class="wa-float" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20need%20help%20with%20my%20email%20setup." target="_blank" rel="noopener" aria-label="Chat on WhatsApp">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3C9.4 3 4 8.4 4 15c0 2.4.7 4.6 2 6.6L4 29l7.6-2c2 .9 4.1 1.5 6.4 1.5 6.6 0 12-5.4 12-12S22.6 3 16 3zm0 21.8c-2 0-3.9-.5-5.5-1.5l-.4-.2-4.5 1.2 1.2-4.4-.3-.4c-1-1.7-1.6-3.7-1.6-5.7C4.9 9.4 10.4 4 16 4s11.1 5.4 11.1 11S21.6 24.8 16 24.8zm6.1-8.1c-.3-.2-1.9-1-2.2-1.1-.3-.1-.5-.2-.7.2-.2.3-.8 1.1-1 1.3-.2.2-.4.2-.7.1-.3-.2-1.4-.5-2.6-1.6-.9-.9-1.6-1.9-1.8-2.2-.2-.3 0-.5.1-.7l.5-.6c.2-.2.2-.3.3-.6.1-.2 0-.4 0-.6-.1-.2-.7-1.8-1-2.4-.3-.6-.5-.5-.7-.6h-.6c-.2 0-.6.2-.9.4-.3.3-1.1 1.1-1.1 2.7s1.2 3.1 1.3 3.4c.2.2 2.2 3.4 5.4 4.7.8.3 1.3.5 1.8.7.8.2 1.4.2 2 .1.6-.1 1.9-.8 2.2-1.5.3-.7.3-1.4.2-1.5-.1-.2-.3-.2-.7-.4z"/></svg>
+  </a>
+<div id="cookie-banner" class="cookie-banner" hidden>
+  <p>We use cookies to understand site traffic and improve OutboundAuth. <a href="/privacy.html">Privacy Policy</a></p>
+  <div class="cookie-actions">
+    <button id="cookie-accept" type="button">Accept</button>
+    <button id="cookie-decline" type="button">Decline</button>
+  </div>
+</div>
+<script src="/consent.js"></script>
+</body>
+</html>
