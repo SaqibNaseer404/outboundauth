@@ -53,6 +53,17 @@ body { overflow-x: clip; }
   padding-left: max(22px, calc(50vw - 578px));
   padding-right: max(22px, calc(50vw - 578px));
 }
+/* ---- full-bleed proof band (same edge-to-edge treatment) ---- */
+.proof-strip {
+  width: 100vw;
+  max-width: 100vw;
+  margin-left: calc(50% - 50vw);
+  border-left: none;
+  border-right: none;
+  border-radius: 0;
+  padding-left: max(22px, calc(50vw - 578px));
+  padding-right: max(22px, calc(50vw - 578px));
+}
 /* ---- scroll-spy section rail ---- */
 .scroll-rail { position:fixed; right:14px; top:50%; transform:translateY(-50%); z-index:60; display:flex; flex-direction:column; gap:22px; }
 .rail-track { position:absolute; top:8px; bottom:8px; left:50%; width:2px; transform:translateX(-50%); background:var(--line); border-radius:2px; }
