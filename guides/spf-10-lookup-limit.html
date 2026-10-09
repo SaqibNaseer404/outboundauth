@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="theme-color" content="#0b1715" />
+  <meta name="google-site-verification" content="lDGa9UqOTxwjHKAL1mI4PlN2ggJn2DVMSazM_CVMP5o" />
+  <meta name="description" content="Why SPF has a 10-DNS-lookup limit, which mechanisms count towards it, how to count lookups in your record, and how to fix permerror with flattening." />
+  <meta property="og:title" content="The SPF 10-lookup limit, explained — OutboundAuth" />
+  <meta property="og:description" content="Which SPF terms eat your 10-lookup budget, how to count them, and how to fix a record that breaks delivery." />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://outboundauth.com/guides/spf-10-lookup-limit.html" />
+  <meta name="twitter:card" content="summary" />
+  <meta property="og:image" content="https://outboundauth.com/og-cover.png" />
+  <link rel="canonical" href="https://outboundauth.com/guides/spf-10-lookup-limit.html" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23087f5b'/%3E%3Cpath d='M20 33l9 9 15-17' stroke='white' stroke-width='6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>The SPF 10-lookup limit, explained — OutboundAuth</title>
+<!-- Google Analytics 4 -->
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied'});
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-PLRGVLMB8S"></script>
+<script>
+gtag('js', new Date());
+gtag('config','G-PLRGVLMB8S');
+</script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="/"><span class="brand-mark">✓</span>OutboundAuth</a>
+      <nav class="topnav" aria-label="Site">
+        <a href="/#toolkit">Tools</a>
+        <a href="/#services">Pricing</a>
+        <a href="/#guides">Guides</a>
+        <a class="cta" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20need%20help%20with%20my%20email%20authentication." target="_blank" rel="noopener">WhatsApp me</a>
+      </nav>
+    </div>
+  </header>
+  <div class="shell">
+    <div class="article-wrap">
+      <a class="crumb" href="/#guides">← All guides</a>
+      <article class="article">
+        <div class="kicker">Guide · SPF</div>
+        <h1>The SPF 10-lookup limit, explained</h1>
+        <p class="lede">Your SPF record lists every service allowed to send mail as your domain — Google Workspace, your cold-email tool, your CRM. But there is a hard ceiling: SPF checkers may only perform 10 DNS lookups while evaluating your record. Hit number eleven and SPF breaks with a <span class="inline">permerror</span>, and nothing warns you until mail starts failing.</p>
+
+        <h2>What is the 10-lookup limit?</h2>
+        <p>SPF works by checking DNS records in the middle of mail delivery, so the standard (RFC 7208, section 4.6.4) puts a cap on how many DNS queries a check may trigger: <strong>10</strong>. Anything in your record that causes a DNS lookup — an <span class="inline">include</span>, an <span class="inline">mx</span>, a <span class="inline">redirect</span> — counts towards that budget, and so do the lookups inside the records those terms point to. If the count passes 10, evaluation stops immediately and the result is <span class="inline">permerror</span> (permanent error).</p>
+        <p>A <span class="inline">permerror</span> is not a neutral shrug — most receiving servers treat it as an SPF failure. If your DMARC policy is <span class="inline">p=reject</span> and DKIM is not passing as a backstop, that message can be rejected outright or sent to spam. In other words, an overstuffed SPF record quietly breaks deliverability.</p>
+
+        <h2>Which SPF terms actually count towards the limit?</h2>
+        <p>Only terms that cause a DNS query count. Each one counts as a single term, even if it triggers several DNS queries behind the scenes:</p>
+        <ul>
+          <li><strong>Count:</strong> <span class="inline">include</span>, <span class="inline">a</span>, <span class="inline">mx</span>, <span class="inline">ptr</span>, <span class="inline">exists</span>, and the <span class="inline">redirect=</span> modifier.</li>
+          <li><strong>Do not count:</strong> <span class="inline">ip4</span>, <span class="inline">ip6</span>, and <span class="inline">all</span> — these are looked up nowhere, so they cost you nothing.</li>
+        </ul>
+        <p>This distinction is the key to every fix later in this guide: swapping DNS-querying terms for plain <span class="inline">ip4</span>/<span class="inline">ip6</span> ranges is what "flattening" means.</p>
+
+        <h2>How do I count the lookups in my record?</h2>
+        <p>Take a record like this one — completely typical for a business using three or four sending services:</p>
+        <div class="record-box"><code>v=spf1 include:_spf.google.com include:spf.protection.outlook.com include:mailgun.org -all</code></div>
+        <p>Your record shows three <span class="inline">include</span> terms, so you might think you are at 3 of 10. The trap is that <strong>includes nest</strong>: every term inside the included record also counts. Google's <span class="inline">_spf.google.com</span>, for example, contains several sub-includes of its own (its netblock lists), and Microsoft's record has nested terms too. In practice, one include of a big provider can cost you four or five lookups, not one.</p>
+        <ol>
+          <li><strong>List your own terms.</strong> Count the <span class="inline">include</span>, <span class="inline">a</span>, <span class="inline">mx</span>, <span class="inline">ptr</span>, <span class="inline">exists</span>, and <span class="inline">redirect=</span> terms in your record.</li>
+          <li><strong>Look up each provider's record.</strong> Query each included hostname's <span class="inline">TXT</span> record (or ask the provider) and count its DNS-querying terms.</li>
+          <li><strong>Add them up recursively.</strong> Your three includes plus everything nested inside them is your real total. Stay well under 10 — implementations differ slightly, so treat 8 as your working maximum.</li>
+        </ol>
+        <p>If that sounds like tedious work, it is — which is why you should paste your record into the <a href="/#toolkit">free SPF audit tool</a> instead. It counts the lookups for you, including the nested ones.</p>
+
+        <h2>What happens when you go over the limit?</h2>
+        <p>The signature symptom is <strong>intermittent SPF failures that don't match any single sending IP</strong>. Mail passes one day and fails the next, or delivery gets worse right after you added a new service — the classic moment is connecting a second CRM, ticketing tool, or cold-email sender on top of an already full record. Because the failure is a <span class="inline">permerror</span> rather than a bad IP, you won't find the problem by checking allowlists; you have to count lookups.</p>
+        <p>With a <span class="inline">p=none</span> DMARC policy you'll mainly see it in your aggregate reports. With <span class="inline">p=reject</span>, it costs you real messages — unless DKIM is aligned and passing as the other authentication path. This is why rolling DMARC to enforcement before auditing your SPF budget is risky; see the <a href="/guides/dmarc-guide.html">DMARC rollout guide</a> for the safe sequence.</p>
+
+        <h2>How do I fix a record that is over the limit?</h2>
+        <ol>
+          <li><strong>Flatten the record.</strong> Replace <span class="inline">include</span> terms with the provider's actual IP ranges as <span class="inline">ip4</span>/<span class="inline">ip6</span> terms. Since those cause zero DNS lookups, they cost nothing. The trade-off: providers change their IP ranges without telling you, so a flattened record can go stale and start failing legitimate mail. Either re-flatten on a schedule or use a flattening service that watches for changes and updates your record.</li>
+          <li><strong>Remove dead senders.</strong> Audit every include and drop services you no longer use — old ticketing tools, marketing platforms you trialled once, the CRM you replaced last year. Most bloated records have at least one.</li>
+          <li><strong>Move services to a subdomain.</strong> Each domain gets its own budget of 10, so send newsletters from <span class="inline">news.yourdomain.com</span> and transactional mail from <span class="inline">mail.yourdomain.com</span> instead of stacking everything on the root domain. This is the cleanest long-term fix for organisations running several platforms.</li>
+          <li><strong>Consolidate where you can.</strong> If two services send through the same infrastructure, you may need only one of them in your record.</li>
+        </ol>
+        <p>After any change, re-run the <a href="/#toolkit">SPF audit tool</a> to confirm you're under the limit — and re-check whenever you add a new sending service. For a refresher on what each part of a record does, see <a href="/guides/spf-explained.html">SPF records explained: syntax, lookups &amp; the 10-lookup limit</a>.</p>
+
+        <h2>Check your own record</h2>
+        <p>Paste your SPF value into the <a href="/#toolkit">free SPF audit tool</a> to see your lookup count, the nested includes eating your budget, and exactly which term to flatten or remove first.</p>
+
+        <div class="cta-box">
+          <h3>SPF audit taking too long?</h3>
+          <p>I audit SPF records for cold emailers and businesses — count the lookups, flatten what matters, and hand you a record that actually passes.</p>
+          <a class="btn primary" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20read%20your%20SPF%20lookup-limit%20guide%20and%20need%20help%20fixing%20my%20record." target="_blank" rel="noopener">WhatsApp Saqib</a>
+          <a class="btn" href="/#services" style="margin-left:8px">See packages</a>
+        </div>
+      </article>
+    </div>
+    <footer class="footer">
+      <div>
+        <p>Results are guidance, not a replacement for testing with your sending provider.</p>
+        <p style="margin-top:6px">Contact: saqibnaseer077@gmail.com · +92 303 5544889</p>
+      </div>
+      <nav aria-label="Legal">
+        <a href="/guides/spf-explained.html">SPF guide</a>
+        <a href="/guides/dmarc-guide.html">DMARC guide</a>
+        <a href="/guides/dkim-explained.html">DKIM guide</a>
+        <a href="/guides/why-emails-go-to-spam.html">Spam guide</a>
+        <a href="/guides/google-workspace-spf-dkim-dmarc-setup.html">Workspace setup guide</a>
+        <a href="/guides/email-warmup-what-actually-works.html">Email warmup guide</a>
+        <a href="/guides/spf-10-lookup-limit.html">SPF 10-lookup limit guide</a>
+        <a href="/privacy.html">Privacy</a>
+        <a href="/terms.html">Terms</a>
+      </nav>
+    </footer>
+  </div>
+  <a class="wa-float" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20need%20help%20with%20my%20email%20setup." target="_blank" rel="noopener" aria-label="Chat on WhatsApp">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3C9.4 3 4 8.4 4 15c0 2.4.7 4.6 2 6.6L4 29l7.6-2c2 .9 4.1 1.5 6.4 1.5 6.6 0 12-5.4 12-12S22.6 3 16 3zm0 21.8c-2 0-3.9-.5-5.5-1.5l-.4-.2-4.5 1.2 1.2-4.4-.3-.4c-1-1.7-1.6-3.7-1.6-5.7C4.9 9.4 10.4 4 16 4s11.1 5.4 11.1 11S21.6 24.8 16 24.8zm6.1-8.1c-.3-.2-1.9-1-2.2-1.1-.3-.1-.5-.2-.7.2-.2.3-.8 1.1-1 1.3-.2.2-.4.2-.7.1-.3-.2-1.4-.5-2.6-1.6-.9-.9-1.6-1.9-1.8-2.2-.2-.3 0-.5.1-.7l.5-.6c.2-.2.2-.3.3-.6.1-.2 0-.4 0-.6-.1-.2-.7-1.8-1-2.4-.3-.6-.5-.5-.7-.6h-.6c-.2 0-.6.2-.9.4-.3.3-1.1 1.1-1.1 2.7s1.2 3.1 1.3 3.4c.2.2 2.2 3.4 5.4 4.7.8.3 1.3.5 1.8.7.8.2 1.4.2 2 .1.6-.1 1.9-.8 2.2-1.5.3-.7.3-1.4.2-1.5-.1-.2-.3-.2-.7-.4z"/></svg>
+  </a>
+<div id="cookie-banner" class="cookie-banner" hidden>
+  <p>We use cookies to understand site traffic and improve OutboundAuth. <a href="/privacy.html">Privacy Policy</a></p>
+  <div class="cookie-actions">
+    <button id="cookie-accept" type="button">Accept</button>
+    <button id="cookie-decline" type="button">Decline</button>
+  </div>
+</div>
+<script src="/consent.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () { navigator.serviceWorker.register('/sw.js').catch(function () {}); });
+}
+</script>
+</body>
+</html>
