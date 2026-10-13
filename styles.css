@@ -118,6 +118,8 @@ input:focus,textarea:focus,select:focus { border-color:var(--accent); box-shadow
 .price-card ul li { padding-left: 24px; position: relative; }
 .price-card ul li::before { content: "✓"; position: absolute; left: 0; color: var(--ok); font-weight: 900; }
 .price-card .btn { text-align: center; }
+.price-card .guarantee { font-size: 14px; color: var(--muted); margin: 0 0 18px; padding-top: 14px; border-top: 1px dashed var(--line); }
+.price-card .guarantee strong { color: var(--ink); }
 .about-card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: clamp(24px,4vw,40px); display: grid; grid-template-columns: 84px 1fr; gap: 22px; align-items: start; box-shadow: var(--shadow); }
 .avatar { width: 84px; height: 84px; border-radius: 50%; background: var(--accent-soft); color: var(--accent-2); display: grid; place-items: center; font: 800 30px/1 Georgia,serif; }
 .about-card h3 { margin: 0 0 8px; font-size: 20px; }
