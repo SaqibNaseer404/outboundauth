@@ -226,3 +226,19 @@ input:focus,textarea:focus,select:focus { border-color:var(--accent); box-shadow
 .proof-score { margin: 0; font-size: 14px; color: var(--muted); }
 .proof-score strong { color: var(--ok); font-size: 17px; }
 .proof-note { margin: 0; font-size: 14px; color: var(--muted); max-width: 780px; }
+
+/* ---- cost-of-spam strip ---- */
+.cost-strip { width: 100vw; max-width: 100vw; margin-left: calc(50% - 50vw); margin-top: 44px;
+  border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--surface-2);
+  padding: clamp(40px,6vw,68px) max(22px, calc(50vw - 578px)); }
+.cost-strip .kicker { font: 700 11px/1.2 "SFMono-Regular",Consolas,monospace; letter-spacing: .11em; text-transform: uppercase; color: var(--accent-2); margin-bottom: 10px; }
+.cost-grid { display: grid; grid-template-columns: repeat(3,1fr); margin: 30px 0 22px;
+  border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: var(--surface); box-shadow: var(--shadow); }
+.cost-cell { padding: 28px 26px; border-left: 1px solid var(--line); }
+.cost-cell:first-child { border-left: 0; }
+.cost-num { font-family: Georgia,"Times New Roman",serif; font-weight: 700; font-size: clamp(40px,4.5vw,58px); letter-spacing: -.02em; line-height: 1; }
+.cost-cell.accent .cost-num { color: var(--accent); }
+.cost-label { color: var(--muted); font-size: 15px; margin-top: 10px; }
+.cost-punch { font-size: 20px; font-weight: 700; margin: 0; }
+.cost-fine { color: var(--muted); font-size: 13px; margin: 12px 0 0; }
+@media (max-width: 760px) { .cost-grid { grid-template-columns: 1fr; } .cost-cell { border-left: 0; border-top: 1px solid var(--line); } .cost-cell:first-child { border-top: 0; } }
