@@ -242,3 +242,33 @@ input:focus,textarea:focus,select:focus { border-color:var(--accent); box-shadow
 .cost-punch { font-size: 20px; font-weight: 700; margin: 0; }
 .cost-fine { color: var(--muted); font-size: 13px; margin: 12px 0 0; }
 @media (max-width: 760px) { .cost-grid { grid-template-columns: 1fr; } .cost-cell { border-left: 0; border-top: 1px solid var(--line); } .cost-cell:first-child { border-top: 0; } }
+
+/* ---- ASMR treatment: marketing sections only (tools untouched) ---- */
+:root{
+  --asmr-bg:#f7f1e3; --asmr-bg-2:#fbf8ee; --asmr-gold:#9a7222;
+  --asmr-gold-soft:#efe2c2; --asmr-line:#e3d5b5;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --asmr-bg:#181206; --asmr-bg-2:#201a0e; --asmr-gold:#d9b36a;
+    --asmr-gold-soft:#2e2513; --asmr-line:#3d3119;
+  }
+}
+/* hero */
+.hero{ background:var(--asmr-bg); border-color:var(--asmr-line); }
+.hero::after{ border-color:var(--asmr-gold-soft); }
+.hero-note{ border-top-color:var(--asmr-gold); }
+/* cost strip */
+.cost-strip{ background:var(--asmr-bg); border-color:var(--asmr-line); }
+.cost-strip .kicker{ color:var(--asmr-gold); }
+.cost-grid{ background:var(--asmr-bg-2); border-color:var(--asmr-line); }
+.cost-cell{ border-color:var(--asmr-line); }
+.cost-cell.accent .cost-num{ color:var(--asmr-gold); }
+/* services */
+#services .kicker{ font:700 11px/1.2 "SFMono-Regular",Consolas,monospace; letter-spacing:.11em; text-transform:uppercase; color:var(--asmr-gold); margin-bottom:10px; }
+.price-card{ background:var(--asmr-bg-2); border-color:var(--asmr-line); }
+.price-card.featured{ border:2px solid var(--asmr-gold); }
+.price-flag{ background:var(--asmr-gold); }
+@media (prefers-color-scheme:dark){ .price-flag{ color:#1c1406; } }
+.price-card .guarantee{ border-top-color:var(--asmr-gold); }
+.price-card ul li::before{ color:var(--asmr-gold); }
