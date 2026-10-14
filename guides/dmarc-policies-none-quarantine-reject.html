@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="theme-color" content="#0b1715" />
+  <meta name="google-site-verification" content="lDGa9UqOTxwjHKAL1mI4PlN2ggJn2DVMSazM_CVMP5o" />
+  <meta name="description" content="DMARC policies none, quarantine and reject explained: what each one does to failing mail, when to use each, how pct ramping works, and real-world examples of the move to enforcement." />
+  <meta property="og:title" content="DMARC Policies: none vs quarantine vs reject — OutboundAuth" />
+  <meta property="og:description" content="When to use p=none, p=quarantine or p=reject — and how to ramp up safely with the pct tag without breaking legitimate mail." />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://outboundauth.com/guides/dmarc-policies-none-quarantine-reject" />
+  <meta name="twitter:card" content="summary" />
+  <meta property="og:image" content="https://outboundauth.com/og-cover.png" />
+  <link rel="canonical" href="https://outboundauth.com/guides/dmarc-policies-none-quarantine-reject" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23087f5b'/%3E%3Cpath d='M20 33l9 9 15-17' stroke='white' stroke-width='6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>DMARC Policies: none vs quarantine vs reject — When to Use Each — OutboundAuth</title>
+<!-- Google Analytics 4 -->
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied'});
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-PLRGVLMB8S"></script>
+<script>
+gtag('js', new Date());
+gtag('config','G-PLRGVLMB8S');
+</script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="/"><span class="brand-mark">✓</span>OutboundAuth</a>
+      <nav class="topnav" aria-label="Site">
+        <a href="/#toolkit">Tools</a>
+        <a href="/#services">Pricing</a>
+        <a href="/#guides">Guides</a>
+                <a href="/about">About</a>
+<a class="cta" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20need%20help%20with%20my%20email%20authentication." target="_blank" rel="noopener">WhatsApp me</a>
+      </nav>
+    </div>
+  </header>
+  <div class="shell">
+    <div class="article-wrap">
+      <a class="crumb" href="/#guides">← All guides</a>
+      <article class="article">
+        <div class="kicker">Guide · DMARC</div>
+        <h1>DMARC policies: none vs quarantine vs reject — when to use each</h1>
+        <p class="lede">The <span class="inline">p</span> tag in your DMARC record decides what happens to mail that fails authentication: nothing, the spam folder, or outright rejection. Pick wrong and you either leave the door open to spoofers — or block your own legitimate mail. Here's what each policy does, when to use it, and how to move between them safely.</p>
+
+        <h2>What is a DMARC policy?</h2>
+        <p>A DMARC policy is the instruction you publish in your <span class="inline">TXT</span> record at <span class="inline">_dmarc</span> (for example <span class="inline">_dmarc.example.com</span>), telling receiving servers what to do with mail that fails DMARC checks. It lives in the <span class="inline">p=</span> tag. There are only three possible values, and the whole rollout game is knowing when to move from one to the next. For the broader rollout picture, see our <a href="/guides/dmarc-guide">DMARC rollout guide</a>.</p>
+
+        <h2>What does p=none do?</h2>
+        <p><span class="inline">p=none</span> means "take no action on failing mail." Receivers deliver it as normal. That sounds pointless, but it's the most important policy you'll publish: combined with the <span class="inline">rua</span> reporting tag, it turns every receiving server into your informant. They send you aggregate reports listing every IP and service sending mail as your domain — your Google Workspace, your cold-email tool, your invoicing software, and any spoofer pretending to be you.</p>
+        <div class="record-box"><code>v=DMARC1; p=none; rua=mailto:dmarc@example.com;</code></div>
+        <p><strong>Use <span class="inline">p=none</span> when:</strong> you're publishing DMARC for the first time, you've just added a new sending service, or you've made any DNS change. Stay here for 1–2 weeks and read the reports before moving on. A <span class="inline">p=none</span> record with no <span class="inline">rua</span> tag is wasted — without reports you learn nothing.</p>
+
+        <h2>What does p=quarantine do?</h2>
+        <p><span class="inline">p=quarantine</span> tells receivers to treat failing mail as suspicious — in practice, that usually means the spam folder. It's the probation step: you start enforcing DMARC while limiting the damage if you've missed a legitimate sender, because quarantined mail can still be recovered, while rejected mail is gone.</p>
+        <div class="record-box"><code>v=DMARC1; p=quarantine; pct=50; rua=mailto:dmarc@example.com;</code></div>
+        <p><strong>Use <span class="inline">p=quarantine</span> when:</strong> your <span class="inline">p=none</span> reports show that every legitimate sender passes SPF or DKIM with proper alignment, but you're not yet confident enough to reject. The <span class="inline">pct</span> tag shown above applies the policy to only a percentage of failing mail — more on that below. Hold quarantine for a week or more and confirm nothing legitimate is landing in spam.</p>
+
+        <h2>What does p=reject do?</h2>
+        <p><span class="inline">p=reject</span> tells receivers to refuse failing mail outright. It's maximum protection: spoofed emails never reach anyone's inbox, spam folder included. It also protects your domain's reputation, because receivers stop associating your domain with the junk they were quietly delivering.</p>
+        <div class="record-box"><code>v=DMARC1; p=reject; pct=100; adkim=r; aspf=r; rua=mailto:dmarc@example.com;</code></div>
+        <p><strong>Use <span class="inline">p=reject</span> when:</strong> your reports show zero legitimate failures over a full cycle (including month-end and newsletter days, which catch forgotten senders). It is also a prerequisite for <span class="inline">BIMI</span> — you cannot get your logo displayed in inboxes without enforcement. For most domains, this is the correct final destination.</p>
+
+        <h2>How does pct ramping work?</h2>
+        <p>The <span class="inline">pct</span> tag applies your policy to only a percentage of failing messages, letting you enforce gradually. A safe schedule looks like this:</p>
+        <ol>
+          <li><span class="inline">p=quarantine; pct=10</span> — only 10% of failing mail is quarantined. Watch for complaints.</li>
+          <li><span class="inline">p=quarantine; pct=50</span> — after a few clean days, raise the share.</li>
+          <li><span class="inline">p=quarantine; pct=100</span> — full quarantine for at least a week.</li>
+          <li><span class="inline">p=reject; pct=10</span>, then <span class="inline">pct=50</span>, then <span class="inline">pct=100</span> — repeat the ramp at the stricter policy.</li>
+        </ol>
+        <p>Give each step 3–7 days and check your <span class="inline">rua</span> reports between changes. <span class="inline">pct</span> is a safety valve, not a permanent setting — the goal is always <span class="inline">p=reject; pct=100</span>. Note that some receivers apply <span class="inline">pct</span> slightly differently, so treat it as approximate, not exact.</p>
+
+        <h2>Real-world examples</h2>
+        <p><strong>A freelancer cold-emailing via a sending tool.</strong> She runs campaigns on a dedicated domain through her cold-email platform, with SPF and DKIM configured there. She publishes <span class="inline">p=none</span> with <span class="inline">rua</span>, confirms two weeks of reports show only her platform's servers passing, then moves to <span class="inline">p=quarantine</span> and ramps to <span class="inline">p=reject</span> within the month. Her domain can no longer be spoofed by competitors or scammers — important when your outreach volume makes you a tempting impersonation target.</p>
+        <p><strong>A small business on Google Workspace.</strong> Their mail comes from Gmail, plus invoices from an accounting tool and appointment reminders from a booking app. <span class="inline">p=none</span> reports reveal the booking app fails DKIM because it was never configured — they fix it before ever enforcing. Two quiet weeks at <span class="inline">p=quarantine</span>, then <span class="inline">p=reject</span>. Had they jumped straight to reject, every booking reminder would have bounced.</p>
+        <p><strong>A SaaS with twelve sending services.</strong> Marketing platform, transactional mailer, support desk, two CRMs, and more. They sit at <span class="inline">p=none</span> for a full month to build a complete sender inventory, quarantine for two weeks (catching a forgotten legacy CRM on day nine), and only then enforce <span class="inline">p=reject</span>. Complex senders move slowly — and that's correct.</p>
+
+        <h2>What mistakes should I avoid?</h2>
+        <ul>
+          <li><strong>Jumping straight to <span class="inline">p=reject</span> on day one.</strong> The most common DMARC mistake. One forgotten sending service and its mail starts bouncing.</li>
+          <li><strong>Sitting on <span class="inline">p=none</span> forever.</strong> Monitoring without enforcement is half the job — you get reports but zero protection. None is a starting point, not a strategy.</li>
+          <li><strong>Publishing a policy with no <span class="inline">rua</span> reporting address.</strong> Without reports, moving to quarantine or reject is flying blind.</li>
+          <li><strong>Changing policies faster than your report cycle.</strong> Aggregate reports arrive roughly daily; give each change several days before judging the result.</li>
+        </ul>
+
+        <h2>Check your own policy</h2>
+        <p>Paste your DMARC record into the <a href="/#toolkit">free DMARC audit tool</a> to see your current policy, whether reporting is set up, and how far you are from full enforcement.</p>
+
+        <div class="cta-box">
+          <h3>Want DMARC enforced without the risk?</h3>
+          <p>I handle the full rollout — monitoring, sender inventory, and the safe move to p=reject — for cold emailers and businesses.</p>
+          <a class="btn primary" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20read%20your%20DMARC%20policies%20guide%20and%20want%20help%20with%20my%20policy%20rollout." target="_blank" rel="noopener">WhatsApp Saqib</a>
+          <a class="btn" href="/#services" style="margin-left:8px">See packages</a>
+        </div>
+      </article>
+    </div>
+    <footer class="footer">
+      <div>
+        <p>Results are guidance, not a replacement for testing with your sending provider.</p>
+        <p style="margin-top:6px">Contact: saqibnaseer077@gmail.com · +92 303 5544889</p>
+      </div>
+      <nav aria-label="Legal">
+        <a href="/guides/spf-explained">SPF guide</a>
+        <a href="/guides/dmarc-guide">DMARC guide</a>
+        <a href="/guides/dkim-explained">DKIM guide</a>
+        <a href="/guides/why-emails-go-to-spam">Spam guide</a>
+        <a href="/guides/google-workspace-spf-dkim-dmarc-setup">Workspace setup guide</a>
+        <a href="/guides/email-warmup-what-actually-works">Email warmup guide</a>
+        <a href="/guides/spf-10-lookup-limit">SPF 10-lookup limit guide</a>
+        <a href="/guides/dmarc-policies-none-quarantine-reject">DMARC policies guide</a>
+        <a href="/privacy">Privacy</a>
+        <a href="/terms">Terms</a>
+        <a href="/about">About</a>
+      </nav>
+    </footer>
+  </div>
+  <a class="wa-float" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20need%20help%20with%20my%20email%20setup." target="_blank" rel="noopener" aria-label="Chat on WhatsApp">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3C9.4 3 4 8.4 4 15c0 2.4.7 4.6 2 6.6L4 29l7.6-2c2 .9 4.1 1.5 6.4 1.5 6.6 0 12-5.4 12-12S22.6 3 16 3zm0 21.8c-2 0-3.9-.5-5.5-1.5l-.4-.2-4.5 1.2 1.2-4.4-.3-.4c-1-1.7-1.6-3.7-1.6-5.7C4.9 9.4 10.4 4 16 4s11.1 5.4 11.1 11S21.6 24.8 16 24.8zm6.1-8.1c-.3-.2-1.9-1-2.2-1.1-.3-.1-.5-.2-.7.2-.2.3-.8 1.1-1 1.3-.2.2-.4.2-.7.1-.3-.2-1.4-.5-2.6-1.6-.9-.9-1.6-1.9-1.8-2.2-.2-.3 0-.5.1-.7l.5-.6c.2-.2.2-.3.3-.6.1-.2 0-.4 0-.6-.1-.2-.7-1.8-1-2.4-.3-.6-.5-.5-.7-.6h-.6c-.2 0-.6.2-.9.4-.3.3-1.1 1.1-1.1 2.7s1.2 3.1 1.3 3.4c.2.2 2.2 3.4 5.4 4.7.8.3 1.3.5 1.8.7.8.2 1.4.2 2 .1.6-.1 1.9-.8 2.2-1.5.3-.7.3-1.4.2-1.5-.1-.2-.3-.2-.7-.4z"/></svg>
+  </a>
+<div id="cookie-banner" class="cookie-banner" hidden>
+  <p>We use cookies to understand site traffic and improve OutboundAuth. <a href="/privacy">Privacy Policy</a></p>
+  <div class="cookie-actions">
+    <button id="cookie-accept" type="button">Accept</button>
+    <button id="cookie-decline" type="button">Decline</button>
+  </div>
+</div>
+<script src="/consent.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () { navigator.serviceWorker.register('/sw.js').catch(function () {}); });
+}
+</script>
+</body>
+</html>
