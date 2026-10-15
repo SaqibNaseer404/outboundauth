@@ -260,7 +260,7 @@ gtag('config','G-PLRGVLMB8S');
         <h2 id="guides-title">Deliverability guides</h2>
         <p>Plain-language explainers on the records and reputation signals that decide whether your email reaches the inbox.</p>
         <div class="guides-progress" aria-hidden="true">
-          <span class="guides-count">Guide <b id="guides-n">0</b> of 9</span>
+          <span class="guides-count">Guide <b id="guides-n">1</b> of 9</span>
           <span class="guides-bar"><span id="guides-fill"></span></span>
         </div>
       </div>
@@ -619,13 +619,19 @@ if ('serviceWorker' in navigator) {
   var nEl=document.getElementById('guides-n'), fill=document.getElementById('guides-fill');
   var mq=window.matchMedia('(min-width:900px)');
   var rm=window.matchMedia('(prefers-reduced-motion:reduce)');
-  var maxX=0, lastN=-1, tick=false;
+  var travel=0, padStart=0, lastN=-1, tick=false;
   function active(){return mq.matches&&!rm.matches;}
   function measure(){
-    if(!active()){driver.style.height='';driver.classList.remove('guides-anim');return;}
+    if(!active()){driver.style.height='';driver.classList.remove('guides-anim');travel=0;padStart=0;return;}
     driver.classList.add('guides-anim');
-    maxX=Math.max(0,track.scrollWidth-sticky.clientWidth);
-    driver.style.height=(window.innerHeight+maxX+Math.round(window.innerHeight*0.5))+'px';
+    /* Center the active card: pad the rail so card 0 starts centered and the
+       last card ends centered. travel covers the full centered journey. */
+    var cardW=(cards.length&&cards[0].offsetWidth)||340;
+    var viewW=sticky.clientWidth||window.innerWidth;
+    padStart=Math.max(0,(viewW-cardW)/2);
+    var maxX=Math.max(0,track.scrollWidth-viewW);
+    travel=maxX+2*padStart;
+    driver.style.height=(window.innerHeight+travel+Math.round(window.innerHeight*0.5))+'px';
   }
   function render(){
     tick=false;
@@ -644,10 +650,10 @@ if ('serviceWorker' in navigator) {
     var scrollable=driver.offsetHeight-vh;
     var p=scrollable>0?(-r.top/scrollable):1;
     p=Math.max(0,Math.min(1,p));
-    var n=Math.round(p*cards.length);
-    track.style.transform='translate3d('+(-p*maxX).toFixed(1)+'px,0,0)';
+    var n=Math.round(p*(cards.length-1))+1;
+    track.style.transform='translate3d('+(padStart-p*travel).toFixed(1)+'px,0,0)';
     for(var i=0;i<cards.length;i++){
-      var pi=p*cards.length-i;
+      var pi=p*cards.length-i+1;
       pi=pi<0?0:(pi>1?1:pi);
       var e=1-Math.pow(1-pi,3);
       var tilt=parseFloat(cards[i].getAttribute('data-tilt')||'0',10);
