@@ -136,7 +136,7 @@ gtag('config','G-PLRGVLMB8S');
           <button class="nav-btn" role="tab" aria-selected="false" aria-controls="subject-panel" id="subject-tab"><span class="nav-icon">Aa</span><span>Subject</span></button>
           <button class="nav-btn" role="tab" aria-selected="false" aria-controls="contact-panel" id="contact-tab"><span class="nav-icon">→</span><span>Get help</span></button>
         </div>
-        <div class="contact-card"><strong>Need the DNS fixed?</strong><p>Get hands-on email authentication help.</p><div class="contact-links"><a href="mailto:saqibnaseer077@gmail.com?subject=Email%20authentication%20help">Email Saqib</a><a href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20need%20help%20with%20my%20email%20authentication." target="_blank" rel="noopener">WhatsApp</a></div></div>
+        <div class="contact-card"><strong>Need the DNS fixed?</strong><p>Get hands-on email authentication help.</p><div class="contact-links"><a href="/cdn-cgi/l/email-protection#027163736b606c637167677032353542656f636b6e2c616d6f3d717760686761763f476f636b6e2730326377766a676c766b6163766b6d6c2730326a676e72">Email Saqib</a><a href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20need%20help%20with%20my%20email%20authentication." target="_blank" rel="noopener">WhatsApp</a></div></div>
       </aside>
       <main>
         <section class="panel active" id="health-panel" role="tabpanel" aria-labelledby="health-tab">
@@ -190,8 +190,8 @@ gtag('config','G-PLRGVLMB8S');
             <div class="field-row"><div class="field"><label for="help-name">Your name</label><input id="help-name" autocomplete="name" placeholder="Your name" /></div><div class="field"><label for="help-domain">Domain</label><input id="help-domain" inputmode="url" placeholder="example.com" /></div></div>
             <div class="field"><label for="help-type">What needs attention?</label><select id="help-type"><option>SPF setup or repair</option><option>DKIM setup or repair</option><option>DMARC rollout</option><option>Full deliverability review</option><option>Other email setup</option></select></div>
             <div class="field"><label for="help-details">Details</label><textarea id="help-details" placeholder="Tell me which sending platforms you use and what is going wrong."></textarea></div>
-            <div class="actions"><a class="btn primary" id="help-email" href="mailto:saqibnaseer077@gmail.com?subject=Email%20authentication%20help">Create email</a><a class="btn" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20need%20help%20with%20my%20email%20setup." target="_blank" rel="noopener">WhatsApp: +92 303 5544889</a></div>
-            <div class="service-note"><strong>Direct contact</strong><br>saqibnaseer077@gmail.com<br>+92 303 5544889</div>
+            <div class="actions"><a class="btn primary" id="help-email" href="/cdn-cgi/l/email-protection#1d6e7c6c747f737c6e78786f2d2a2a5d7a707c7471337e7270226e687f77787e692058707c7471382f2d7c686975787369747e7c69747273382f2d7578716d">Create email</a><a class="btn" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20need%20help%20with%20my%20email%20setup." target="_blank" rel="noopener">WhatsApp: +92 303 5544889</a></div>
+            <div class="service-note"><strong>Direct contact</strong><br><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="e69587978f84888795838394d6d1d1a6818b878f8ac885898b">[email&#160;protected]</a><br>+92 303 5544889</div>
           </div>
         </section>
       </main>
@@ -255,68 +255,72 @@ gtag('config','G-PLRGVLMB8S');
       </div>
     </section>
 
-    <section class="section" id="guides" aria-labelledby="guides-title">
+    <div class="guides-driver" id="guides-driver"><div class="guides-sticky"><section class="section" id="guides" aria-labelledby="guides-title">
       <div class="section-head">
         <h2 id="guides-title">Deliverability guides</h2>
         <p>Plain-language explainers on the records and reputation signals that decide whether your email reaches the inbox.</p>
+        <div class="guides-progress" aria-hidden="true">
+          <span class="guides-count">Guide <b id="guides-n">0</b> of 9</span>
+          <span class="guides-bar"><span id="guides-fill"></span></span>
+        </div>
       </div>
-      <div class="guide-grid">
-        <a class="guide-card" href="/guides/dmarc-policies-none-quarantine-reject">
+      <div class="guide-grid" id="guides-track">
+        <a class="guide-card" href="/guides/dmarc-policies-none-quarantine-reject" data-tilt="-5"><span class="guide-thumb"><img src="images/thumbs/dmarc-policies.jpg" alt="" loading="lazy" width="640" height="360"></span>
           <div class="kicker">Guide · DMARC</div>
           <h3>DMARC policies: none vs quarantine vs reject — when to use each</h3>
           <p>What each policy does to failing mail, how pct ramping works, and real-world examples of the safe move to enforcement.</p>
           <span class="go">Read the guide →</span>
         </a>
-        <a class="guide-card" href="/guides/spf-10-lookup-limit">
+        <a class="guide-card" href="/guides/spf-10-lookup-limit" data-tilt="5"><span class="guide-thumb"><img src="images/thumbs/spf-10-lookup.jpg" alt="" loading="lazy" width="640" height="360"></span>
           <div class="kicker">Guide · SPF</div>
           <h3>The SPF 10-lookup limit, explained</h3>
           <p>Why too many includes break SPF, how to count lookups in your record, and how to fix permerror with flattening.</p>
           <span class="go">Read the guide →</span>
         </a>
-        <a class="guide-card" href="/guides/email-warmup-what-actually-works">
+        <a class="guide-card" href="/guides/email-warmup-what-actually-works" data-tilt="-4"><span class="guide-thumb"><img src="images/thumbs/email-warmup.jpg" alt="" loading="lazy" width="640" height="360"></span>
           <div class="kicker">Guide · Warmup</div>
           <h3>Email warmup: what actually works (and what wastes your time)</h3>
           <p>Warmup pools vs. real engagement, realistic timelines, and the mistakes that tank your sender reputation.</p>
           <span class="go">Read the guide →</span>
         </a>
-        <a class="guide-card" href="/guides/google-workspace-spf-dkim-dmarc-setup">
+        <a class="guide-card" href="/guides/google-workspace-spf-dkim-dmarc-setup" data-tilt="4"><span class="guide-thumb"><img src="images/thumbs/google-workspace-setup.jpg" alt="" loading="lazy" width="640" height="360"></span>
           <div class="kicker">Guide · Google Workspace</div>
           <h3>Google Workspace SPF, DKIM &amp; DMARC setup: the exact clicks</h3>
           <p>From unsigned mail to full authentication — admin console clicks plus copy-paste DNS records.</p>
           <span class="go">Read the guide →</span>
         </a>
-        <a class="guide-card" href="/guides/zendesk-spf-suspended-tickets">
+        <a class="guide-card" href="/guides/zendesk-spf-suspended-tickets" data-tilt="-5"><span class="guide-thumb"><img src="images/thumbs/zendesk-spf.jpg" alt="" loading="lazy" width="640" height="360"></span>
           <div class="kicker">News · SPF</div>
           <h3>Zendesk is now silently suspending emails with broken SPF</h3>
           <p>Since Sept 23, 2026, failed SPF without valid DKIM lands in the Suspended tickets view. Check your setup in 30 seconds.</p>
           <span class="go">Read the post →</span>
         </a>
-        <a class="guide-card" href="/guides/spf-explained">
+        <a class="guide-card" href="/guides/spf-explained" data-tilt="5"><span class="guide-thumb"><img src="images/thumbs/spf-explained.jpg" alt="" loading="lazy" width="640" height="360"></span>
           <div class="kicker">Guide · SPF</div>
           <h3>SPF records explained: syntax, lookups &amp; the 10-lookup limit</h3>
           <p>What each part of an SPF record does, why too many includes break delivery, and how to stay under the limit.</p>
           <span class="go">Read the guide →</span>
         </a>
-        <a class="guide-card" href="/guides/dmarc-guide">
+        <a class="guide-card" href="/guides/dmarc-guide" data-tilt="-4"><span class="guide-thumb"><img src="images/thumbs/dmarc-rollout.jpg" alt="" loading="lazy" width="640" height="360"></span>
           <div class="kicker">Guide · DMARC</div>
           <h3>DMARC rollout: from p=none to p=reject without breaking mail flow</h3>
           <p>Policies, alignment modes, and aggregate reports — a safe step-by-step path to full enforcement.</p>
           <span class="go">Read the guide →</span>
         </a>
-        <a class="guide-card" href="/guides/dkim-explained">
+        <a class="guide-card" href="/guides/dkim-explained" data-tilt="4"><span class="guide-thumb"><img src="images/thumbs/dkim-explained.jpg" alt="" loading="lazy" width="640" height="360"></span>
           <div class="kicker">Guide · DKIM</div>
           <h3>DKIM explained: signatures, selectors &amp; DNS records</h3>
           <p>How DKIM proves your email is genuine and unaltered — plus the mistakes that silently break it.</p>
           <span class="go">Read the guide →</span>
         </a>
-        <a class="guide-card" href="/guides/why-emails-go-to-spam">
+        <a class="guide-card" href="/guides/why-emails-go-to-spam" data-tilt="-5"><span class="guide-thumb"><img src="images/thumbs/cold-email-spam.jpg" alt="" loading="lazy" width="640" height="360"></span>
           <div class="kicker">Guide · Deliverability</div>
           <h3>Why your cold emails go to spam (and how authentication fixes it)</h3>
           <p>Authentication, reputation, content and list hygiene — the four levers that decide inbox placement.</p>
           <span class="go">Read the guide →</span>
         </a>
       </div>
-    </section>
+    </section></div></div>
 
     <section class="section" id="faq" aria-labelledby="faq-title">
       <div class="section-head">
@@ -354,7 +358,7 @@ gtag('config','G-PLRGVLMB8S');
     <footer class="footer">
       <div>
         <p>Results are guidance, not a replacement for testing with your sending provider.</p>
-        <p style="margin-top:6px">Contact: saqibnaseer077@gmail.com · +92 303 5544889</p>
+        <p style="margin-top:6px">Contact: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="354654445c575b5446505047050202755258545c591b565a58">[email&#160;protected]</a> · +92 303 5544889</p>
       </div>
       <nav aria-label="Legal">
         <a href="/guides/spf-explained">SPF guide</a>
@@ -379,7 +383,7 @@ gtag('config','G-PLRGVLMB8S');
     <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3C9.4 3 4 8.4 4 15c0 2.4.7 4.6 2 6.6L4 29l7.6-2c2 .9 4.1 1.5 6.4 1.5 6.6 0 12-5.4 12-12S22.6 3 16 3zm0 21.8c-2 0-3.9-.5-5.5-1.5l-.4-.2-4.5 1.2 1.2-4.4-.3-.4c-1-1.7-1.6-3.7-1.6-5.7C4.9 9.4 10.4 4 16 4s11.1 5.4 11.1 11S21.6 24.8 16 24.8zm6.1-8.1c-.3-.2-1.9-1-2.2-1.1-.3-.1-.5-.2-.7.2-.2.3-.8 1.1-1 1.3-.2.2-.4.2-.7.1-.3-.2-1.4-.5-2.6-1.6-.9-.9-1.6-1.9-1.8-2.2-.2-.3 0-.5.1-.7l.5-.6c.2-.2.2-.3.3-.6.1-.2 0-.4 0-.6-.1-.2-.7-1.8-1-2.4-.3-.6-.5-.5-.7-.6h-.6c-.2 0-.6.2-.9.4-.3.3-1.1 1.1-1.1 2.7s1.2 3.1 1.3 3.4c.2.2 2.2 3.4 5.4 4.7.8.3 1.3.5 1.8.7.8.2 1.4.2 2 .1.6-.1 1.9-.8 2.2-1.5.3-.7.3-1.4.2-1.5-.1-.2-.3-.2-.7-.4z"/></svg>
   </a>
 
-  <script>
+  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
     (function(){"use strict";
       var $=function(id){return document.getElementById(id);};
       function esc(s){return String(s).replace(/[&<>'"]/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'})[c];});}
@@ -602,6 +606,63 @@ gtag('config','G-PLRGVLMB8S');
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function () { navigator.serviceWorker.register('/sw.js').catch(function () {}); });
 }
+</script>
+<script>
+/* Guides scroll-fan: pinned horizontal rail driven by scroll (desktop, no-reduced-motion only).
+   Mobile <900px and prefers-reduced-motion fall back to the plain grid (no JS changes needed). */
+(function(){
+  var driver=document.getElementById('guides-driver');
+  if(!driver)return;
+  var sticky=driver.querySelector('.guides-sticky');
+  var track=document.getElementById('guides-track');
+  var cards=Array.prototype.slice.call(track.querySelectorAll('.guide-card'));
+  var nEl=document.getElementById('guides-n'), fill=document.getElementById('guides-fill');
+  var mq=window.matchMedia('(min-width:900px)');
+  var rm=window.matchMedia('(prefers-reduced-motion:reduce)');
+  var maxX=0, lastN=-1, tick=false;
+  function active(){return mq.matches&&!rm.matches;}
+  function measure(){
+    if(!active()){driver.style.height='';driver.classList.remove('guides-anim');return;}
+    driver.classList.add('guides-anim');
+    maxX=Math.max(0,track.scrollWidth-sticky.clientWidth);
+    driver.style.height=(window.innerHeight+maxX+Math.round(window.innerHeight*0.5))+'px';
+  }
+  function render(){
+    tick=false;
+    var on=active();
+    driver.classList.toggle('guides-anim',on);
+    if(!on){
+      if(lastN!==-2){
+        for(var k=0;k<cards.length;k++){cards[k].style.opacity='';cards[k].style.transform='';}
+        track.style.transform='';
+        if(nEl)nEl.textContent='9'; if(fill)fill.style.width='100%';
+        lastN=-2;
+      }
+      return;
+    }
+    var r=driver.getBoundingClientRect(), vh=window.innerHeight;
+    var scrollable=driver.offsetHeight-vh;
+    var p=scrollable>0?(-r.top/scrollable):1;
+    p=Math.max(0,Math.min(1,p));
+    var n=Math.round(p*cards.length);
+    track.style.transform='translate3d('+(-p*maxX).toFixed(1)+'px,0,0)';
+    for(var i=0;i<cards.length;i++){
+      var pi=p*cards.length-i;
+      pi=pi<0?0:(pi>1?1:pi);
+      var e=1-Math.pow(1-pi,3);
+      var tilt=parseFloat(cards[i].getAttribute('data-tilt')||'0',10);
+      cards[i].style.opacity=e.toFixed(3);
+      cards[i].style.transform='translateY('+((1-e)*70).toFixed(1)+'px) rotate('+((1-e)*tilt).toFixed(2)+'deg)';
+    }
+    if(n!==lastN){lastN=n;if(nEl)nEl.textContent=String(n);if(fill)fill.style.width=Math.round(n/cards.length*100)+'%';}
+  }
+  function request(){if(tick)return;tick=true;requestAnimationFrame(render);}
+  window.addEventListener('scroll',request,{passive:true});
+  window.addEventListener('resize',function(){measure();request();});
+  if(mq.addEventListener)mq.addEventListener('change',function(){measure();request();});
+  if(rm.addEventListener)rm.addEventListener('change',function(){measure();request();});
+  measure();render();
+})();
 </script>
 </body>
 </html>
