@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="theme-color" content="#0b1715" />
+  <meta name="google-site-verification" content="lDGa9UqOTxwjHKAL1mI4PlN2ggJn2DVMSazM_CVMP5o" />
+  <meta name="description" content="Learn to read email headers like a deliverability pro: view full headers in Gmail and Outlook, decode Authentication-Results, and spot who really sent a message." />
+  <meta property="og:title" content="How to Read Email Headers Like a Deliverability Pro — OutboundAuth" />
+  <meta property="og:description" content="Full headers reveal SPF, DKIM and DMARC verdicts, the true sender, and the path a message took. Here's how to read them in plain language." />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://outboundauth.com/guides/email-headers-like-a-deliverability-pro" />
+  <meta name="twitter:card" content="summary" />
+  <meta property="og:image" content="https://outboundauth.com/og-cover.png" />
+  <link rel="canonical" href="https://outboundauth.com/guides/email-headers-like-a-deliverability-pro" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23087f5b'/%3E%3Cpath d='M20 33l9 9 15-17' stroke='white' stroke-width='6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>How to Read Email Headers Like a Deliverability Pro — OutboundAuth</title>
+<!-- Google Analytics 4 -->
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied'});
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-PLRGVLMB8S"></script>
+<script>
+gtag('js', new Date());
+gtag('config','G-PLRGVLMB8S');
+</script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="/"><span class="brand-mark">✓</span>OutboundAuth</a>
+      <nav class="topnav" aria-label="Site">
+        <a href="/#toolkit">Tools</a>
+        <a href="/#services">Pricing</a>
+        <a href="/#guides">Guides</a>
+                <a href="/about">About</a>
+<a class="cta" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20need%20help%20with%20my%20email%20authentication." target="_blank" rel="noopener">WhatsApp me</a>
+      </nav>
+    </div>
+  </header>
+  <div class="shell">
+    <div class="article-wrap">
+      <a class="crumb" href="/#guides">← All guides</a>
+      <article class="article">
+        <div class="kicker">Guide · Email headers</div>
+        <h1>How to read email headers like a deliverability pro</h1>
+        <p class="lede">Every email carries a hidden flight recorder: the full headers. They reveal the SPF, DKIM and DMARC verdicts, who really sent the message, and every server it passed through. Once you can read them, spam-folder mysteries stop being mysteries.</p>
+
+        <h2>How do I see full email headers?</h2>
+        <p>Email clients hide headers by default — you only see From, To, Subject and Date. To see the rest:</p>
+        <ul>
+          <li><strong>Gmail:</strong> open the message, click the three-dot menu, then <span class="inline">Show original</span>. Copy the full text from the new window.</li>
+          <li><strong>Outlook (web):</strong> open the message, click the three-dot menu, then <span class="inline">View</span> → <span class="inline">View message details</span>.</li>
+          <li><strong>Outlook (desktop):</strong> double-click the message to open it, then <span class="inline">File</span> → <span class="inline">Properties</span> → <span class="inline">Internet headers</span>.</li>
+          <li><strong>Apple Mail:</strong> select the message, then <span class="inline">View</span> → <span class="inline">Message</span> → <span class="inline">All Headers</span> (or <span class="inline">Raw Source</span> for the complete text).</li>
+        </ul>
+        <p>Headers read bottom-up: the first server in the chain is at the bottom, the last one before your inbox is at the top.</p>
+
+        <h2>Which headers actually matter?</h2>
+        <p>A full header dump can be a hundred lines long. Deliverability pros focus on a short list:</p>
+        <ul>
+          <li><span class="inline">Authentication-Results</span> — the receiving server's official verdict on SPF, DKIM and DMARC. Start here.</li>
+          <li><span class="inline">Return-Path</span> — the envelope sender, used for SPF checks. Often differs from the visible <span class="inline">From</span>.</li>
+          <li><span class="inline">DKIM-Signature</span> — shows the signing domain in its <span class="inline">d=</span> tag (e.g. <span class="inline">d=google.com</span>).</li>
+          <li><span class="inline">Received</span> — one line per server hop, each with IP, hostname and timestamp. Together they trace the delivery path.</li>
+          <li><span class="inline">Message-ID</span> — a unique fingerprint for the message.</li>
+          <li><span class="inline">Reply-To</span> — where replies actually go; if it differs from <span class="inline">From</span>, treat the message with care.</li>
+          <li><span class="inline">List-Unsubscribe</span> — present on legitimate marketing mail; its absence on bulk-looking mail is a warning sign.</li>
+          <li><span class="inline">X-Spam-Status</span> / <span class="inline">X-Spam-Score</span> — the receiving filter's spam verdict and score, when exposed.</li>
+        </ul>
+
+        <h2>How do I read an Authentication-Results line?</h2>
+        <p>This line is the verdict that decides inbox or spam. It looks like this:</p>
+        <div class="record-box"><code>Authentication-Results: mx.example.net;<br>&nbsp;&nbsp;spf=pass (sender IP is 203.0.113.45) smtp.mailfrom=example.com;<br>&nbsp;&nbsp;dkim=pass header.d=example.com;<br>&nbsp;&nbsp;dmarc=pass header.from=example.com</code></div>
+        <p>Each result is one of:</p>
+        <ul>
+          <li><span class="inline">pass</span> — the check succeeded. All three passing with aligned domains is the gold standard.</li>
+          <li><span class="inline">fail</span> — the check failed. <span class="inline">dmarc=fail</span> is what pushes mail toward spam or rejection.</li>
+          <li><span class="inline">softfail</span> — SPF failed but the record ended in <span class="inline">~all</span> (soft-fail), so the receiver notes it without acting hard. A sign the record needs tightening — see the <a href="/guides/spf-explained">SPF guide</a>.</li>
+          <li><span class="inline">none</span> — no check was possible, usually because the domain has no published record.</li>
+          <li><span class="inline">temperror</span> / <span class="inline">permerror</span> — the lookup itself broke (DNS timeout, or too many lookups for SPF).</li>
+        </ul>
+        <p>When mail lands in spam, this line tells you exactly which check failed and for which domain — no guessing needed.</p>
+
+        <h2>How do I tell who really sent this email?</h2>
+        <p>The <span class="inline">From</span> header is just text — anyone can write anything in it. The real identity check is a three-way comparison:</p>
+        <ol>
+          <li><strong><span class="inline">From</span>:</strong> what the recipient sees.</li>
+          <li><strong><span class="inline">Return-Path</span>:</strong> the envelope domain that SPF validates.</li>
+          <li><strong><span class="inline">d=</span> in <span class="inline">DKIM-Signature</span>:</strong> the domain that cryptographically signed the message.</li>
+        </ol>
+        <p>If all three agree on your domain and <span class="inline">dmarc=pass</span>, the message is authentically yours. If the <span class="inline">From</span> says your domain but DKIM's <span class="inline">d=</span> says something else entirely, that's spoofing or an unauthorised sender — exactly what <a href="/guides/dmarc-policies-none-quarantine-reject">DMARC enforcement</a> is designed to stop.</p>
+
+        <h2>How do I trace the path an email took?</h2>
+        <p>Read the <span class="inline">Received</span> lines from bottom to top. Each one names a server, its IP, and the time it handled the message. Look for:</p>
+        <ul>
+          <li><strong>Unexpected hops</strong> — relays in countries or networks that have nothing to do with your sending service.</li>
+          <li><strong>Time gaps</strong> — long delays between hops point to greylisting or a congested relay.</li>
+          <li><strong>IP mismatches</strong> — a hop claiming a hostname whose IP doesn't belong to your sending provider.</li>
+        </ul>
+        <p>For your own campaigns, the first hop after your sending platform should be a server you recognise — Google's, your SMTP provider's, or your cold-email tool's.</p>
+
+        <h2>What do spam-score headers mean?</h2>
+        <p>Some servers add lines like <span class="inline">X-Spam-Status: Yes, score=7.2</span> or <span class="inline">X-Spam-Level: *******</span> (one asterisk per point). A score above the server's threshold — commonly 5 — means spam. The detail lines often name the triggered rules, such as missing authentication or suspicious URLs, which tells you what to fix. For a broader walkthrough of the usual culprits, see <a href="/guides/why-emails-go-to-spam">why emails go to spam</a>.</p>
+
+        <h2>Analyse headers in seconds</h2>
+        <p>Reading headers by hand is a great skill, but you don't have to do it every time. Paste the raw headers from any message into the <a href="/#toolkit">free header analyzer tool</a> and it pulls out the SPF, DKIM and DMARC verdicts automatically — handy when you're auditing a client's inbox or checking your own campaigns.</p>
+
+        <div class="cta-box">
+          <h3>Headers showing fails you can't explain?</h3>
+          <p>I audit authentication end-to-end — records, alignment and sending setup — and fix the fails so your mail lands in the inbox.</p>
+          <a class="btn primary" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20read%20your%20email%20headers%20guide%20and%20need%20help%20with%20authentication." target="_blank" rel="noopener">WhatsApp Saqib</a>
+          <a class="btn" href="/#services" style="margin-left:8px">See packages</a>
+        </div>
+      </article>
+    </div>
+    <footer class="footer">
+      <div>
+        <p>Results are guidance, not a replacement for testing with your sending provider.</p>
+        <p style="margin-top:6px">Contact: saqibnaseer077@gmail.com · +92 303 5544889</p>
+      </div>
+      <nav aria-label="Legal">
+        <a href="/guides/spf-explained">SPF guide</a>
+        <a href="/guides/why-emails-go-to-spam">Spam guide</a>
+        <a href="/guides/dkim-explained">DKIM guide</a>
+        <a href="/guides/google-workspace-spf-dkim-dmarc-setup">Workspace setup guide</a>
+        <a href="/guides/email-warmup-what-actually-works">Email warmup guide</a>
+        <a href="/guides/spf-10-lookup-limit">SPF 10-lookup limit guide</a>
+        <a href="/guides/dmarc-policies-none-quarantine-reject">DMARC policies guide</a>
+        <a href="/guides/email-headers-like-a-deliverability-pro">Email headers guide</a>
+        <a href="/privacy">Privacy</a>
+        <a href="/terms">Terms</a>
+        <a href="/about">About</a>
+      </nav>
+    </footer>
+  </div>
+  <a class="wa-float" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20need%20help%20with%20my%20email%20setup." target="_blank" rel="noopener" aria-label="Chat on WhatsApp">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3C9.4 3 4 8.4 4 15c0 2.4.7 4.6 2 6.6L4 29l7.6-2c2 .9 4.1 1.5 6.4 1.5 6.6 0 12-5.4 12-12S22.6 3 16 3zm0 21.8c-2 0-3.9-.5-5.5-1.5l-.4-.2-4.5 1.2 1.2-4.4-.3-.4c-1-1.7-1.6-3.7-1.6-5.7C4.9 9.4 10.4 4 16 4s11.1 5.4 11.1 11S21.6 24.8 16 24.8zm6.1-8.1c-.3-.2-1.9-1-2.2-1.1-.3-.1-.5-.2-.7.2-.2.3-.8 1.1-1 1.3-.2.2-.4.2-.7.1-.3-.2-1.4-.5-2.6-1.6-.9-.9-1.6-1.9-1.8-2.2-.2-.3 0-.5.1-.7l.5-.6c.2-.2.2-.3.3-.6.1-.2 0-.4 0-.6-.1-.2-.7-1.8-1-2.4-.3-.6-.5-.5-.7-.6h-.6c-.2 0-.6.2-.9.4-.3.3-1.1 1.1-1.1 2.7s1.2 3.1 1.3 3.4c.2.2 2.2 3.4 5.4 4.7.8.3 1.3.5 1.8.7.8.2 1.4.2 2 .1.6-.1 1.9-.8 2.2-1.5.3-.7.3-1.4.2-1.5-.1-.2-.3-.2-.7-.4z"/></svg>
+  </a>
+<div id="cookie-banner" class="cookie-banner" hidden>
+  <p>We use cookies to understand site traffic and improve OutboundAuth. <a href="/privacy">Privacy Policy</a></p>
+  <div class="cookie-actions">
+    <button id="cookie-accept" type="button">Accept</button>
+    <button id="cookie-decline" type="button">Decline</button>
+  </div>
+</div>
+<script src="/consent.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () { navigator.serviceWorker.register('/sw.js').catch(function () {}); });
+}
+</script>
+</body>
+</html>
