@@ -204,8 +204,9 @@ export async function onRequestPost(context) {
       const upBody = await r.text().catch(() => "");
       diag +=
         model + ":http" + r.status + ":" + ms + "ms:" + upBody.slice(0, 200) + " | ";
-      if (r.status !== 400 && r.status !== 404 && r.status !== 429) break;
-      if (r.status === 429) break;
+      // 400/404 (bad or retired model), 429 (quota) and 5xx (temporary
+      // capacity trouble) are all worth trying the next model for —
+      // quotas and capacity are per-model. Anything else fails fast.
     } catch (e) {
       lastStatus = -1;
       diag +=
