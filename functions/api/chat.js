@@ -46,7 +46,7 @@ RULES:
 - When genuinely relevant, link ONE of these guides (clean URLs): /guides/spf-10-lookup-limit, /guides/dmarc-policies-none-quarantine-reject, /guides/email-headers-like-a-deliverability-pro, /guides/why-emails-go-to-spam, /guides/email-warmup-what-actually-works, /guides/dkim-explained, /guides/dmarc-guide, /guides/spf-explained, /guides/google-workspace-spf-dkim-dmarc-setup — or the free checker tools on the homepage.
 - A $49 human deliverability audit exists for cases that truly need hands-on diagnosis. Mention it at most once per conversation, only when the problem genuinely needs a human, never pushy.`;
 
-const MODELS = ["gemini-2.5-flash", "gemini-2.0-flash"]; // fallback order; if the first is retired for new projects, the next is tried
+const MODELS = ["gemini-3.8-flash", "gemini-3.5-flash-lite"]; // fallback order; current GA models as of Oct 2026
 const API_TIMEOUT_MS = 45000;
 
 // Abuse guards — the free quota is shared across ALL visitors,
