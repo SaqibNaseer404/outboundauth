@@ -147,8 +147,11 @@ export async function onRequestPost(context) {
 
   let apiResp = null;
   let lastStatus = 0;
+  let lastErr = null;
+  const attempts = [];
   for (const model of MODELS) {
     try {
+      const t0 = Date.now();
       const r = await fetch(API_URL, {
         method: "POST",
         headers: {
@@ -165,6 +168,7 @@ export async function onRequestPost(context) {
         }),
       });
       lastStatus = r.status;
+      attempts.push(model + ":http" + r.status + ":" + (Date.now() - t0) + "ms");
       if (r.ok) {
         apiResp = r;
         break;
@@ -172,8 +176,10 @@ export async function onRequestPost(context) {
       // 400/404 = bad or retired model name → try the next model.
       // 429/5xx = provider-side trouble → don't burn the fallback, fail fast.
       if (r.status !== 400 && r.status !== 404) break;
-    } catch {
+    } catch (e) {
       lastStatus = -1; // network error or timeout
+      lastErr = (e && e.name ? e.name : "?") + ": " + (e && e.message ? e.message : e);
+      attempts.push(model + ":threw:" + lastErr + ":" + (Date.now() - t0) + "ms");
       break;
     }
   }
@@ -186,7 +192,10 @@ export async function onRequestPost(context) {
       );
     }
     return json(
-      { error: "The AI service is unreachable right now. Try again in a minute." },
+      {
+        error: "The AI service is unreachable right now. Try again in a minute.",
+        diag: "attempts=[" + attempts.join(" | ") + "] lastStatus=" + lastStatus,
+      },
       502
     );
   }
