@@ -1,8 +1,11 @@
 // functions/api/chat.js — Deliverability Copilot backend (Cloudflare Pages Functions)
-// Same-origin API for /copilot. Proxies to Groq (free tier, OpenAI-compatible)
-// with the API key kept server-side in the GROQ_API_KEY secret.
-// Deploy: "Add file → Create new file" in GitHub web UI, filename:
-//   functions/api/chat.js   (creates the folders automatically)
+// Same-origin API for /copilot. Proxies to Google Gemini (free tier,
+// OpenAI-compatible endpoint) with the API key kept server-side in the
+// GEMINI_API_KEY secret.
+// Deploy: "Add file → Upload files" in GitHub web UI, replacing the
+// existing functions/api/chat.js (upload updates it in place).
+// NOTE: Gemini free tier may use prompts to improve Google's models —
+// the privacy page discloses this. Never promise "private" on this tier.
 
 const SYSTEM_PROMPT = `You are the Deliverability Copilot, a friendly expert assistant on outboundauth.com, a free email deliverability toolkit. Your job: help people diagnose why their emails bounce, land in spam, or fail authentication (SPF, DKIM, DMARC).
 
@@ -43,9 +46,9 @@ RULES:
 - When genuinely relevant, link ONE of these guides (clean URLs): /guides/spf-10-lookup-limit, /guides/dmarc-policies-none-quarantine-reject, /guides/email-headers-like-a-deliverability-pro, /guides/why-emails-go-to-spam, /guides/email-warmup-what-actually-works, /guides/dkim-explained, /guides/dmarc-guide, /guides/spf-explained, /guides/google-workspace-spf-dkim-dmarc-setup — or the free checker tools on the homepage.
 - A $49 human deliverability audit exists for cases that truly need hands-on diagnosis. Mention it at most once per conversation, only when the problem genuinely needs a human, never pushy.`;
 
-const MODELS = ["openai/gpt-oss-20b", "llama-3.1-8b-instant"]; // fallback order; Groq rotates models, so never depend on one name
-const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
-const GROQ_TIMEOUT_MS = 45000;
+const MODELS = ["gemini-2.5-flash", "gemini-2.0-flash"]; // fallback order; if the first is retired for new projects, the next is tried
+const API_URL = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
+const API_TIMEOUT_MS = 45000;
 
 // Abuse guards — the free quota is shared across ALL visitors,
 // so per-IP limits keep one bot from eating the day's budget.
@@ -138,21 +141,21 @@ export async function onRequestPost(context) {
     }));
   if (!messages.length) return json({ error: "No message received." }, 400);
 
-  if (!env.GROQ_API_KEY) {
+  if (!env.GEMINI_API_KEY) {
     return json({ error: "Copilot is not configured yet (missing API key)." }, 500);
   }
 
-  let groqResp = null;
+  let apiResp = null;
   let lastStatus = 0;
   for (const model of MODELS) {
     try {
-      const r = await fetch(GROQ_URL, {
+      const r = await fetch(API_URL, {
         method: "POST",
         headers: {
-          Authorization: "Bearer " + env.GROQ_API_KEY,
+          Authorization: "Bearer " + env.GEMINI_API_KEY,
           "Content-Type": "application/json",
         },
-        signal: AbortSignal.timeout(GROQ_TIMEOUT_MS),
+        signal: AbortSignal.timeout(API_TIMEOUT_MS),
         body: JSON.stringify({
           model,
           stream: true,
@@ -163,7 +166,7 @@ export async function onRequestPost(context) {
       });
       lastStatus = r.status;
       if (r.ok) {
-        groqResp = r;
+        apiResp = r;
         break;
       }
       // 400/404 = bad or retired model name → try the next model.
@@ -175,7 +178,7 @@ export async function onRequestPost(context) {
     }
   }
 
-  if (!groqResp) {
+  if (!apiResp) {
     if (lastStatus === 429) {
       return json(
         { error: "Lots of people are asking questions right now. Try again in a few minutes." },
@@ -189,8 +192,8 @@ export async function onRequestPost(context) {
   }
   recordGlobalHit();
 
-  // Stream Groq's SSE straight through to the browser.
-  return new Response(groqResp.body, {
+  // Stream Gemini's SSE straight through to the browser.
+  return new Response(apiResp.body, {
     headers: {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache",
