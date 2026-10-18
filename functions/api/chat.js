@@ -1,6 +1,6 @@
 // functions/api/chat.js — Deliverability Copilot backend (Cloudflare Pages Functions)
 // Same-origin API for /copilot. Proxies to Google Gemini (free tier,
-// OpenAI-compatible endpoint) with the API key kept server-side in the
+// NATIVE :generateContent endpoint) with the API key kept server-side in the
 // GEMINI_API_KEY secret.
 // Deploy: "Add file → Upload files" in GitHub web UI, replacing the
 // existing functions/api/chat.js (upload updates it in place).
@@ -47,7 +47,6 @@ RULES:
 - A $49 human deliverability audit exists for cases that truly need hands-on diagnosis. Mention it at most once per conversation, only when the problem genuinely needs a human, never pushy.`;
 
 const MODELS = ["gemini-2.5-flash", "gemini-2.0-flash"]; // fallback order; if the first is retired for new projects, the next is tried
-const API_URL = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
 const API_TIMEOUT_MS = 45000;
 
 // Abuse guards — the free quota is shared across ALL visitors,
@@ -145,68 +144,111 @@ export async function onRequestPost(context) {
     return json({ error: "Copilot is not configured yet (missing API key)." }, 500);
   }
 
-  let apiResp = null;
+  const apiKey = env.GEMINI_API_KEY;
+
+  // Convert chat history to Gemini's native format (roles: user/model).
+  const contents = [];
+  for (const m of messages) {
+    if (m.role === "system") continue;
+    const role = m.role === "assistant" ? "model" : "user";
+    const text = m.content.slice(0, 4000);
+    if (!text.trim()) continue;
+    const last = contents[contents.length - 1];
+    if (last && last.role === role) last.parts[0].text += "\n" + text;
+    else contents.push({ role, parts: [{ text }] });
+  }
+  while (contents.length && contents[0].role !== "user") contents.shift();
+  if (!contents.length) return json({ error: "No message received." }, 400);
+
+  let answerText = null;
   let lastStatus = 0;
-  let lastErr = null;
-  const attempts = [];
+  let diag = "";
   for (const model of MODELS) {
     try {
       const t0 = Date.now();
-      const r = await fetch(API_URL, {
+      const url =
+        "https://generativelanguage.googleapis.com/v1beta/models/" +
+        model +
+        ":generateContent";
+      const r = await fetch(url, {
         method: "POST",
         headers: {
-          Authorization: "Bearer " + env.GEMINI_API_KEY,
           "Content-Type": "application/json",
+          "x-goog-api-key": apiKey,
         },
         signal: AbortSignal.timeout(API_TIMEOUT_MS),
         body: JSON.stringify({
-          model,
-          stream: true,
-          temperature: 0.4,
-          max_tokens: 900,
-          messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
+          system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
+          contents,
+          generationConfig: { temperature: 0.4, maxOutputTokens: 900 },
         }),
       });
       lastStatus = r.status;
-      attempts.push(model + ":http" + r.status + ":" + (Date.now() - t0) + "ms");
+      const ms = Date.now() - t0;
       if (r.ok) {
-        apiResp = r;
-        break;
+        const data = await r.json().catch(() => null);
+        const cand =
+          data && data.candidates && data.candidates[0] ? data.candidates[0] : null;
+        const parts =
+          cand && cand.content && Array.isArray(cand.content.parts)
+            ? cand.content.parts
+            : [];
+        const text = parts.map((p) => p.text || "").join("");
+        if (text.trim()) {
+          answerText = text;
+          break;
+        }
+        diag += model + ":empty-response:" + ms + "ms | ";
+        continue;
       }
-      // 400/404 = bad or retired model name → try the next model.
-      // 429/5xx = provider-side trouble → don't burn the fallback, fail fast.
-      if (r.status !== 400 && r.status !== 404) break;
+      const upBody = await r.text().catch(() => "");
+      diag +=
+        model + ":http" + r.status + ":" + ms + "ms:" + upBody.slice(0, 200) + " | ";
+      if (r.status !== 400 && r.status !== 404 && r.status !== 429) break;
+      if (r.status === 429) break;
     } catch (e) {
-      lastStatus = -1; // network error or timeout
-      lastErr = (e && e.name ? e.name : "?") + ": " + (e && e.message ? e.message : e);
-      attempts.push(model + ":threw:" + lastErr + ":" + (Date.now() - t0) + "ms");
+      lastStatus = -1;
+      diag +=
+        model +
+        ":threw:" +
+        (e && e.name ? e.name : "?") +
+        ":" +
+        (e && e.message ? e.message : e) +
+        " | ";
       break;
     }
   }
 
-  if (!apiResp) {
+  if (!answerText) {
     if (lastStatus === 429) {
       return json(
-        { error: "Lots of people are asking questions right now. Try again in a few minutes." },
+        {
+          error:
+            "Lots of people are asking questions right now. Try again in a few minutes.",
+        },
         502
       );
     }
     return json(
       {
         error: "The AI service is unreachable right now. Try again in a minute.",
-        diag: "attempts=[" + attempts.join(" | ") + "] lastStatus=" + lastStatus,
+        diag: diag.slice(0, 500),
       },
       502
     );
   }
   recordGlobalHit();
 
-  // Stream Gemini's SSE straight through to the browser.
-  return new Response(apiResp.body, {
+  // Wrap the full answer as one SSE chunk so the existing frontend
+  // streaming parser works unchanged, then [DONE].
+  const sse =
+    'data: {"choices":[{"delta":{"content":' +
+    JSON.stringify(answerText) +
+    "}}]}\n\ndata: [DONE]\n\n";
+  return new Response(sse, {
     headers: {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache",
-      Connection: "keep-alive",
     },
   });
 }
