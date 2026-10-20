@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="theme-color" content="#0b1715" />
+  <meta name="google-site-verification" content="lDGa9UqOTxwjHKAL1mI4PlN2ggJn2DVMSazM_CVMP5o" />
+  <meta name="description" content="BIMI puts your brand logo next to your emails in Gmail, Apple Mail and Yahoo. Here's what it needs — DMARC enforcement, a square SVG logo, a VMC certificate — and the setup steps." />
+  <meta property="og:title" content="BIMI: Get Your Logo in the Inbox — OutboundAuth" />
+  <meta property="og:description" content="The logo next to emails in Gmail and Apple Mail is BIMI — and it only shows for domains with enforced DMARC. Requirements and setup, in plain language." />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://outboundauth.com/guides/bimi-get-your-logo-in-the-inbox" />
+  <meta name="twitter:card" content="summary" />
+  <meta property="og:image" content="https://outboundauth.com/og-cover.png" />
+  <link rel="canonical" href="https://outboundauth.com/guides/bimi-get-your-logo-in-the-inbox" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23087f5b'/%3E%3Cpath d='M20 33l9 9 15-17' stroke='white' stroke-width='6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>BIMI: Get Your Logo in the Inbox — OutboundAuth</title>
+<!-- Google Analytics 4 -->
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied'});
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-PLRGVLMB8S"></script>
+<script>
+gtag('js', new Date());
+gtag('config','G-PLRGVLMB8S');
+</script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="/"><span class="brand-mark">✓</span>OutboundAuth</a>
+      <nav class="topnav" aria-label="Site">
+        <a href="/#toolkit">Tools</a>
+        <a href="/#services">Pricing</a>
+        <a href="/#guides">Guides</a>
+                <a href="/about">About</a>
+<a class="cta" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20need%20help%20with%20my%20email%20authentication." target="_blank" rel="noopener">WhatsApp me</a>
+      </nav>
+    </div>
+  </header>
+  <div class="shell">
+    <div class="article-wrap">
+      <a class="crumb" href="/#guides">← All guides</a>
+      <article class="article">
+        <div class="kicker">Guide · BIMI</div>
+        <h1>BIMI: get your logo in the inbox</h1>
+        <p class="lede">That little brand logo next to emails in Gmail and Apple Mail isn't decoration — it's BIMI. And it only appears for domains that have their authentication fully in order. Here's what BIMI is, what it requires, and how to set it up.</p>
+
+        <h2>What is BIMI, exactly?</h2>
+        <p>BIMI — <strong>Brand Indicators for Message Identification</strong> — is an open standard that lets mailbox providers display your brand logo next to your authenticated emails. It works in Gmail, Apple Mail, Yahoo Mail and several others. The key detail: BIMI rides on top of DMARC. It only shows your logo when your domain proves it is really you — <span class="inline">p=none</span> won't cut it. That's what makes the logo meaningful: when recipients see it, they know the message passed real authentication checks.</p>
+
+        <h2>What do you need before BIMI will work?</h2>
+        <p>Four things, in dependency order:</p>
+        <ol>
+          <li><strong>DMARC at enforcement.</strong> Your policy must be <span class="inline">p=quarantine</span> or <span class="inline">p=reject</span> — a monitoring-only <span class="inline">p=none</span> policy doesn't qualify. If you're not there yet, follow the <a href="/guides/dmarc-guide">DMARC rollout guide</a> and the <a href="/guides/dmarc-policies-none-quarantine-reject">DMARC policies guide</a> first.</li>
+          <li><strong>Aligned SPF and/or DKIM.</strong> Your mail has to pass SPF or DKIM with proper <span class="inline">DMARC alignment</span> for your domain — the same bar enforcement already requires.</li>
+          <li><strong>A square SVG logo, hosted over HTTPS.</strong> BIMI uses the SVG Tiny 1.2 profile: a square, centered mark (no tagline text — it renders tiny), served from a stable HTTPS URL you control.</li>
+          <li><strong>A certificate proving the logo is yours.</strong> Gmail and Yahoo require a <span class="inline">Verified Mark Certificate (VMC)</span> — or, for Gmail, the lower-cost Common Mark Certificate (CMC) if you don't have a registered trademark. Apple Mail shows BIMI logos without any certificate.</li>
+        </ol>
+
+        <h2>What does a BIMI record look like?</h2>
+        <p>BIMI is a <span class="inline">TXT</span> record at the <span class="inline">default._bimi</span> host of your domain — for example, <span class="inline">default._bimi.example.com</span>. A finished record looks like this:</p>
+        <div class="record-box"><code>v=BIMI1; l=https://example.com/bimi/logo.svg; a=https://example.com/bimi/cert.pem;</code></div>
+        <p>The <span class="inline">l=</span> tag points to your logo file (required). The <span class="inline">a=</span> tag points to your VMC or CMC certificate file — optional in the BIMI spec itself, but Gmail and Yahoo won't display your logo without it.</p>
+
+        <h2>How do you set up BIMI step by step?</h2>
+        <ol>
+          <li><strong>Get DMARC to enforcement.</strong> <span class="inline">p=quarantine</span> or <span class="inline">p=reject</span> at <span class="inline">pct=100</span>, with every legitimate sender passing alignment. This is the hard part — and the part that actually protects your domain.</li>
+          <li><strong>Create the logo.</strong> A square SVG in the Tiny 1.2 profile: your mark centered, generous padding, no fine text. Test how it looks at 48 pixels — that's roughly how small it renders.</li>
+          <li><strong>Host it over HTTPS</strong> at a URL that won't change, e.g. <span class="inline">https://yourdomain.com/bimi/logo.svg</span>.</li>
+          <li><strong>Get your certificate.</strong> A VMC requires a registered trademark matching the logo and is issued by authorities like DigiCert or Entrust. If you don't have a trademark, Gmail also accepts a Common Mark Certificate (CMC) — cheaper and faster, but it only unlocks the logo in Gmail.</li>
+          <li><strong>Publish the TXT record</strong> at <span class="inline">default._bimi.yourdomain.com</span> with your <span class="inline">l=</span> and <span class="inline">a=</span> values.</li>
+          <li><strong>Verify.</strong> Send test mail to Gmail and Apple Mail inboxes and check that the logo appears, or run your record through a BIMI validator. Allow up to 24–48 hours for DNS and mailbox-provider caches to catch up.</li>
+        </ol>
+
+        <h2>Do you actually need a VMC certificate?</h2>
+        <p>It depends on where your recipients read mail. <strong>Gmail and Yahoo require a certificate</strong> (VMC, or CMC for Gmail) — it's what stops anyone from slapping your logo on their own mail, and it's the main cost of BIMI. <strong>Apple Mail and some other providers show BIMI logos with no certificate at all.</strong> That's why you'll sometimes see a sender's logo in Apple Mail but a plain letter avatar in Gmail: the authentication is fine, the certificate is what's missing.</p>
+
+        <h2>Will BIMI improve your deliverability?</h2>
+        <p>Honest answer: BIMI doesn't change spam-filter decisions — authentication and sender reputation do that. What it changes is <em>recognition</em>: your mail is instantly identifiable in a crowded inbox, which builds trust and can lift open and engagement rates over time. And the real deliverability win is hiding in the prerequisite: reaching DMARC enforcement, which stops spoofing of your domain cold. Think of BIMI as the visible reward for doing the invisible work.</p>
+
+        <h2>Check your setup first</h2>
+        <p>Before spending money on a certificate, confirm your foundation is solid: run your domain through the <a href="/#toolkit">free DMARC audit tool</a> to verify you're at enforcement with clean alignment. BIMI is a finishing touch — enforcement is the house it's built on.</p>
+
+        <div class="cta-box">
+          <h3>Want your logo in the inbox?</h3>
+          <p>I handle the full setup — DMARC enforcement, the SVG logo spec, and the BIMI record — for cold emailers and businesses.</p>
+          <a class="btn primary" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20read%20your%20BIMI%20guide%20and%20want%20help%20getting%20my%20logo%20in%20the%20inbox." target="_blank" rel="noopener">WhatsApp Saqib</a>
+          <a class="btn" href="/#services" style="margin-left:8px">See packages</a>
+        </div>
+      </article>
+    </div>
+    <footer class="footer">
+      <div>
+        <p>Results are guidance, not a replacement for testing with your sending provider.</p>
+        <p style="margin-top:6px">Contact: saqibnaseer077@gmail.com · +92 303 5544889</p>
+      </div>
+      <nav aria-label="Legal">
+        <a href="/guides/spf-explained">SPF guide</a>
+        <a href="/guides/why-emails-go-to-spam">Spam guide</a>
+        <a href="/guides/dkim-explained">DKIM guide</a>
+        <a href="/guides/google-workspace-spf-dkim-dmarc-setup">Workspace setup guide</a>
+        <a href="/guides/email-warmup-what-actually-works">Email warmup guide</a>
+        <a href="/guides/spf-10-lookup-limit">SPF 10-lookup limit guide</a>
+        <a href="/guides/dmarc-policies-none-quarantine-reject">DMARC policies guide</a>
+        <a href="/guides/email-headers-like-a-deliverability-pro">Email headers guide</a>
+        <a href="/guides/bimi-get-your-logo-in-the-inbox">BIMI guide</a>
+        <a href="/privacy">Privacy</a>
+        <a href="/terms">Terms</a>
+        <a href="/about">About</a>
+      </nav>
+    </footer>
+  </div>
+  <a class="wa-float" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20need%20help%20with%20my%20email%20setup." target="_blank" rel="noopener" aria-label="Chat on WhatsApp">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3C9.4 3 4 8.4 4 15c0 2.4.7 4.6 2 6.6L4 29l7.6-2c2 .9 4.1 1.5 6.4 1.5 6.6 0 12-5.4 12-12S22.6 3 16 3zm0 21.8c-2 0-3.9-.5-5.5-1.5l-.4-.2-4.5 1.2 1.2-4.4-.3-.4c-1-1.7-1.6-3.7-1.6-5.7C4.9 9.4 10.4 4 16 4s11.1 5.4 11.1 11S21.6 24.8 16 24.8zm6.1-8.1c-.3-.2-1.9-1-2.2-1.1-.3-.1-.5-.2-.7.2-.2.3-.8 1.1-1 1.3-.2.2-.4.2-.7.1-.3-.2-1.4-.5-2.6-1.6-.9-.9-1.6-1.9-1.8-2.2-.2-.3 0-.5.1-.7l.5-.6c.2-.2.2-.3.3-.6.1-.2 0-.4 0-.6-.1-.2-.7-1.8-1-2.4-.3-.6-.5-.5-.7-.6h-.6c-.2 0-.6.2-.9.4-.3.3-1.1 1.1-1.1 2.7s1.2 3.1 1.3 3.4c.2.2 2.2 3.4 5.4 4.7.8.3 1.3.5 1.8.7.8.2 1.4.2 2 .1.6-.1 1.9-.8 2.2-1.5.3-.7.3-1.4.2-1.5-.1-.2-.3-.2-.7-.4z"/></svg>
+  </a>
+<div id="cookie-banner" class="cookie-banner" hidden>
+  <p>We use cookies to understand site traffic and improve OutboundAuth. <a href="/privacy">Privacy Policy</a></p>
+  <div class="cookie-actions">
+    <button id="cookie-accept" type="button">Accept</button>
+    <button id="cookie-decline" type="button">Decline</button>
+  </div>
+</div>
+<script src="/consent.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () { navigator.serviceWorker.register('/sw.js').catch(function () {}); });
+}
+</script>
+</body>
+</html>
