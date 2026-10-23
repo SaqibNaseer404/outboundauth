@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="theme-color" content="#0b1715" />
+  <meta name="google-site-verification" content="lDGa9UqOTxwjHKAL1mI4PlN2ggJn2DVMSazM_CVMP5o" />
+  <meta name="description" content="A pre-send cold email deliverability checklist: SPF/DKIM/DMARC authentication, domain warmup, list hygiene, spam-safe content and safe sending volumes — the checks that keep you out of spam." />
+  <meta property="og:title" content="The Cold Email Deliverability Checklist — OutboundAuth" />
+  <meta property="og:description" content="20 pre-send checks across authentication, warmup, list hygiene, content and volume — run this before any cold email campaign." />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://outboundauth.com/guides/cold-email-deliverability-checklist" />
+  <meta name="twitter:card" content="summary" />
+  <meta property="og:image" content="https://outboundauth.com/og-cover.png" />
+  <link rel="canonical" href="https://outboundauth.com/guides/cold-email-deliverability-checklist" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23087f5b'/%3E%3Cpath d='M20 33l9 9 15-17' stroke='white' stroke-width='6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>The Cold Email Deliverability Checklist: 20 Checks Before You Press Send — OutboundAuth</title>
+<!-- Google Analytics 4 -->
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied'});
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-PLRGVLMB8S"></script>
+<script>
+gtag('js', new Date());
+gtag('config','G-PLRGVLMB8S');
+</script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="/"><span class="brand-mark">✓</span>OutboundAuth</a>
+      <nav class="topnav" aria-label="Site">
+        <a href="/#toolkit">Tools</a>
+        <a href="/#services">Pricing</a>
+        <a href="/#guides">Guides</a>
+                <a href="/about">About</a>
+<a class="cta" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20need%20help%20with%20my%20email%20authentication." target="_blank" rel="noopener">WhatsApp me</a>
+      </nav>
+    </div>
+  </header>
+  <div class="shell">
+    <div class="article-wrap">
+      <a class="crumb" href="/#guides">← All guides</a>
+      <article class="article">
+        <div class="kicker">Guide · Checklist</div>
+        <h1>The cold email deliverability checklist: 20 checks before you press send</h1>
+        <p class="lede">Most cold emails don't land in spam because of one big mistake. They land in spam because of five or six small ones stacking up. Run these 20 checks — across authentication, warmup, list hygiene, content and volume — before every campaign.</p>
+
+        <h2>Why does a pre-send checklist matter?</h2>
+        <p>Sender reputation is cumulative and slow to rebuild. A single bad batch — high bounces, spam complaints, broken authentication — can drag a domain's reputation down for weeks, and recovery means starting the warmup clock again. Five minutes of checks costs you nothing; a burned domain costs you a month.</p>
+
+        <h2>Is your authentication actually passing?</h2>
+        <p>This is the foundation. If these checks fail, fix them before worrying about anything else.</p>
+        <ol>
+          <li><strong>SPF passes and resolves.</strong> Your SPF record authorises every service that sends as your domain — and it must stay under the <a href="/guides/spf-10-lookup-limit">10-lookup limit</a>, or SPF fails outright with a permerror.</li>
+          <li><strong>DKIM signs every message.</strong> Each sending service needs its own selector with a published <span class="inline">TXT</span> record, and the signature must validate — one misconfigured service silently breaks it, as explained in the <a href="/guides/dkim-explained">DKIM guide</a>.</li>
+          <li><strong>DMARC is published and aligned.</strong> At minimum a <span class="inline">p=none</span> policy with <span class="inline">rua</span> reporting so you can see who's sending as you. Ideally you've already worked toward enforcement using the <a href="/guides/dmarc-guide">DMARC rollout guide</a>.</li>
+          <li><strong>Your tracking domain is custom and aligned.</strong> Click and open tracking that runs through a shared provider domain (like the sending tool's own domain) can drag down your reputation and break alignment. Use a custom tracking subdomain on your own domain.</li>
+          <li><strong>Test before you send.</strong> Run your domain through the <a href="/#toolkit">free SPF, DKIM and DMARC tools</a> and read a test message's <a href="/guides/email-headers-like-a-deliverability-pro">email headers</a> to confirm <span class="inline">Authentication-Results</span> shows real passes.</li>
+        </ol>
+
+        <h2>Is your domain warmed up for this volume?</h2>
+        <p>A fresh domain sending 500 emails on day one is the classic reputation killer. Mailbox providers trust senders that ramp up gradually.</p>
+        <ol>
+          <li><strong>New domains ramp over 2–4 weeks.</strong> Start at roughly 20–50 emails per day per inbox and increase by 20–30% every few days as engagement stays positive.</li>
+          <li><strong>Warmup inboxes are active.</strong> If you use a warmup service, confirm the warmup inboxes are actually replying and marking messages as important — dead warmup pools are worse than useless, as covered in the <a href="/guides/email-warmup-what-actually-works">warmup guide</a>.</li>
+          <li><strong>Keep cold outreach off your main domain.</strong> Send cold email from a separate domain or subdomain. If the outreach domain takes a reputation hit, your main business email — invoices, replies, customer mail — stays safe.</li>
+          <li><strong>Volume per inbox stays modest.</strong> A commonly used ceiling is 30–50 cold emails per day per inbox. Need more volume? Add more inboxes across more domains, don't push one inbox harder.</li>
+        </ol>
+
+        <h2>Is your list clean?</h2>
+        <p>Bounces are the loudest signal of a low-quality list. High bounce rates tell providers your mail is unwanted.</p>
+        <ol>
+          <li><strong>Verify every address before sending.</strong> Run your list through an email verification tool and remove invalid, catch-all and risky addresses. Cold lists older than a few months should be re-verified.</li>
+          <li><strong>Keep bounces under 2%.</strong> If a batch bounces above ~2%, stop, re-verify the list, and fix the source — sending through a bad list once more will do more damage than pausing.</li>
+          <li><strong>Scrub bounces and unsubscribes permanently.</strong> Maintain a suppression list and never re-add an address that bounced or unsubscribed. Re-sending to them is how domains get blocked.</li>
+          <li><strong>Never send to purchased or scraped bulk lists.</strong> Besides being illegal in many regions without consent, these lists are full of spam traps — addresses that exist only to catch spammers. One trap hit can land your IP on a blocklist.</li>
+          <li><strong>Include a working unsubscribe mechanism.</strong> Every cold email needs a clear, working way to opt out. It's legally required in most places and dramatically reduces spam complaints — a complaint hurts far more than an unsubscribe.</li>
+        </ol>
+
+        <h2>Does your content trigger spam filters?</h2>
+        <p>Filters score content signals alongside reputation. None of these alone decides your fate, but they add up.</p>
+        <ol>
+          <li><strong>Subject lines are natural.</strong> No ALL CAPS, no strings of exclamation marks or dollar signs, no deceptive "Re:" or "Fwd:" prefixes. Write like a person, not a banner ad.</li>
+          <li><strong>Links are few and reputable.</strong> One or two links to domains you control beats five links through URL shorteners — public shorteners are heavily abused and filters treat them with suspicion.</li>
+          <li><strong>Images stay minimal.</strong> An all-image email with no real text looks exactly like the phishing templates filters are trained on. Use a healthy text-to-image ratio and always include a plain-text version.</li>
+          <li><strong>Drop the hype language.</strong> "Guaranteed," "risk-free," "act now," "double your revenue" — spam filters weigh this phrasing, and prospects do too. Specific, concrete language outperforms hype twice over.</li>
+          <li><strong>Personalise beyond the first name.</strong> Genuine personalisation — a sentence about their company, a relevant observation — drives replies, and positive engagement is the strongest inbox-placement signal there is.</li>
+        </ol>
+
+        <h2>Is your sending setup safe?</h2>
+        <p>A good list and good content can still underperform if the sending pattern looks robotic.</p>
+        <ol>
+          <li><strong>Stagger sends across time.</strong> Hundreds of identical emails leaving in the same minute looks automated because it is. Spread sends across the day with natural spacing between them.</li>
+          <li><strong>Follow-ups are spaced and limited.</strong> Two or three spaced follow-ups per prospect is standard; more starts generating "please stop emailing me" replies — the exact negative engagement that hurts reputation.</li>
+          <li><strong>Watch reply sentiment, not just reply rate.</strong> A 5% reply rate means nothing if half the replies are telling you to go away. Negative replies are a reputation signal too — suppress complainers immediately.</li>
+        </ol>
+
+        <h2>What should you monitor after pressing send?</h2>
+        <p>The checklist doesn't end at send time. In the first 24–48 hours, watch bounces, spam complaints and reply sentiment, run your domain's records through the <a href="/#toolkit">free toolkit</a> if anything looks off, and check that your domain hasn't landed on a public blocklist. If placement drops, reduce volume before diagnosing — sending harder into a reputation problem only deepens it.</p>
+
+        <div class="cta-box">
+          <h3>Want this audit done for you?</h3>
+          <p>I run the full pre-send audit — authentication, warmup, list and content checks — so your campaigns start with a clean bill of health.</p>
+          <a class="btn primary" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20read%20your%20deliverability%20checklist%20and%20want%20a%20pre-send%20audit%20of%20my%20cold%20email%20setup." target="_blank" rel="noopener">WhatsApp Saqib</a>
+          <a class="btn" href="/#services" style="margin-left:8px">See packages</a>
+        </div>
+      </article>
+    </div>
+    <footer class="footer">
+      <div>
+        <p>Results are guidance, not a replacement for testing with your sending provider.</p>
+        <p style="margin-top:6px">Contact: saqibnaseer077@gmail.com · +92 303 5544889</p>
+      </div>
+      <nav aria-label="Legal">
+        <a href="/guides/spf-explained">SPF guide</a>
+        <a href="/guides/why-emails-go-to-spam">Spam guide</a>
+        <a href="/guides/dkim-explained">DKIM guide</a>
+        <a href="/guides/google-workspace-spf-dkim-dmarc-setup">Workspace setup guide</a>
+        <a href="/guides/email-warmup-what-actually-works">Email warmup guide</a>
+        <a href="/guides/spf-10-lookup-limit">SPF 10-lookup limit guide</a>
+        <a href="/guides/dmarc-policies-none-quarantine-reject">DMARC policies guide</a>
+        <a href="/guides/email-headers-like-a-deliverability-pro">Email headers guide</a>
+        <a href="/guides/bimi-get-your-logo-in-the-inbox">BIMI guide</a>
+        <a href="/guides/cold-email-deliverability-checklist">Checklist guide</a>
+        <a href="/privacy">Privacy</a>
+        <a href="/terms">Terms</a>
+        <a href="/about">About</a>
+      </nav>
+    </footer>
+  </div>
+  <a class="wa-float" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20need%20help%20with%20my%20email%20setup." target="_blank" rel="noopener" aria-label="Chat on WhatsApp">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3C9.4 3 4 8.4 4 15c0 2.4.7 4.6 2 6.6L4 29l7.6-2c2 .9 4.1 1.5 6.4 1.5 6.6 0 12-5.4 12-12S22.6 3 16 3zm0 21.8c-2 0-3.9-.5-5.5-1.5l-.4-.2-4.5 1.2 1.2-4.4-.3-.4c-1-1.7-1.6-3.7-1.6-5.7C4.9 9.4 10.4 4 16 4s11.1 5.4 11.1 11S21.6 24.8 16 24.8zm6.1-8.1c-.3-.2-1.9-1-2.2-1.1-.3-.1-.5-.2-.7.2-.2.3-.8 1.1-1 1.3-.2.2-.4.2-.7.1-.3-.2-1.4-.5-2.6-1.6-.9-.9-1.6-1.9-1.8-2.2-.2-.3 0-.5.1-.7l.5-.6c.2-.2.2-.3.3-.6.1-.2 0-.4 0-.6-.1-.2-.7-1.8-1-2.4-.3-.6-.5-.5-.7-.6h-.6c-.2 0-.6.2-.9.4-.3.3-1.1 1.1-1.1 2.7s1.2 3.1 1.3 3.4c.2.2 2.2 3.4 5.4 4.7.8.3 1.3.5 1.8.7.8.2 1.4.2 2 .1.6-.1 1.9-.8 2.2-1.5.3-.7.3-1.4.2-1.5-.1-.2-.3-.2-.7-.4z"/></svg>
+  </a>
+<div id="cookie-banner" class="cookie-banner" hidden>
+  <p>We use cookies to understand site traffic and improve OutboundAuth. <a href="/privacy">Privacy Policy</a></p>
+  <div class="cookie-actions">
+    <button id="cookie-accept" type="button">Accept</button>
+    <button id="cookie-decline" type="button">Decline</button>
+  </div>
+</div>
+<script src="/consent.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () { navigator.serviceWorker.register('/sw.js').catch(function () {}); });
+}
+</script>
+</body>
+</html>
