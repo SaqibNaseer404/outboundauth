@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="theme-color" content="#0b1715" />
+  <meta name="google-site-verification" content="lDGa9UqOTxwjHKAL1mI4PlN2ggJn2DVMSazM_CVMP5o" />
+  <meta name="description" content="Sample $49 deliverability audit from OutboundAuth — a real audit of a Texas HVAC company's email authentication (SPF, DKIM, DMARC), with the business identity changed for privacy." />
+  <meta property="og:title" content="Sample Deliverability Audit — OutboundAuth" />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://outboundauth.com/og-cover.png" />
+  <meta property="og:url" content="https://outboundauth.com/sample-audit" />
+  <link rel="canonical" href="https://outboundauth.com/sample-audit" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23087f5b'/%3E%3Cpath d='M20 33l9 9 15-17' stroke='white' stroke-width='6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Sample Deliverability Audit — OutboundAuth</title>
+<!-- Google Analytics 4 -->
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied'});
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-PLRGVLMB8S"></script>
+<script>
+gtag('js', new Date());
+gtag('config','G-PLRGVLMB8S');
+</script>
+<style>
+  .sample-banner { background: var(--warn); color: #fff; border-radius: 10px; padding: 14px 18px; font-weight: 700; margin-bottom: 26px; }
+  @media (prefers-color-scheme: dark) { .sample-banner { color: #1d1500; } }
+  .score-box { display: flex; gap: 22px; align-items: center; flex-wrap: wrap; background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 20px 24px; margin: 0 0 26px; }
+  .score-big { font-family: Georgia, "Times New Roman", serif; font-size: 54px; line-height: 1; letter-spacing: -.03em; }
+  .score-box p { margin: 0; max-width: 480px; }
+  table.checks { width: 100%; border-collapse: collapse; margin: 0 0 26px; font-size: 15px; }
+  table.checks th, table.checks td { border: 1px solid var(--line); padding: 10px 12px; text-align: left; vertical-align: top; }
+  table.checks th { background: var(--surface-2); font-size: 13px; text-transform: uppercase; letter-spacing: .06em; }
+  .badge { display: inline-block; font: 700 11px/1.2 "SFMono-Regular", Consolas, monospace; letter-spacing: .08em; text-transform: uppercase; padding: 4px 9px; border-radius: 999px; color: #fff; white-space: nowrap; }
+  .badge.pass { background: var(--ok); }
+  .badge.warn { background: var(--warn); }
+  .badge.fail { background: var(--bad); }
+  @media (prefers-color-scheme: dark) { .badge { color: #0b1715; } }
+  .finding { border: 1px solid var(--line); border-left: 5px solid var(--line); border-radius: 10px; padding: 16px 20px; margin: 0 0 16px; background: var(--surface); }
+  .finding.high { border-left-color: var(--bad); }
+  .finding.good { border-left-color: var(--ok); }
+  .finding h3 { margin: 0 0 6px; font-size: 18px; }
+  .finding p { margin: 0 0 8px; }
+  .finding p:last-child { margin-bottom: 0; }
+  .sev { font: 700 11px/1.2 "SFMono-Regular", Consolas, monospace; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  pre.record { background: var(--code); color: var(--code-ink); border-radius: 10px; padding: 14px 16px; overflow-x: auto; font: 13px/1.6 "SFMono-Regular", Consolas, monospace; margin: 0 0 16px; white-space: pre-wrap; word-break: break-word; }
+  .limits-box { background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 18px 22px; margin: 0 0 26px; }
+  .limits-box p:last-child { margin-bottom: 0; }
+  .cta-box { border: 1px solid var(--accent); border-radius: 12px; padding: 22px 24px; margin: 0 0 10px; }
+  .btn-wa { display: inline-block; background: var(--accent); color: #fff; font-weight: 800; text-decoration: none; padding: 13px 22px; border-radius: 10px; margin-top: 8px; }
+  .btn-wa:hover { background: var(--accent-2); }
+  @media (prefers-color-scheme: dark) { .btn-wa { color: #062017; } .btn-wa:hover { color: #062017; } }
+  .smallprint { font-size: 13px; color: var(--muted); }
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="/"><span class="brand-mark">✓</span>OutboundAuth</a>
+      <nav class="topnav" aria-label="Site">
+        <a href="/#toolkit">Tools</a>
+        <a href="/#services">Pricing</a>
+        <a href="/#guides">Guides</a>
+                <a href="/about">About</a>
+<a class="cta" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20need%20help%20with%20my%20email%20authentication." target="_blank" rel="noopener">WhatsApp me</a>
+      </nav>
+    </div>
+  </header>
+  <div class="shell">
+    <div class="article-wrap">
+      <article class="article">
+        <div class="sample-banner">📄 SAMPLE REPORT — This is a sample of the $49 deliverability audit, so you can see exactly what you get before you pay anything.</div>
+        <div class="kicker">Deliverability Audit · Sample</div>
+        <h1>Sample audit: a Texas HVAC company</h1>
+        <p class="lede">Domain checked: <strong>clientdomain.com</strong> (name changed for privacy) · Mail provider: Microsoft 365 · Checked: October 29, 2026</p>
+
+        <div class="score-box">
+          <div class="score-big">45<span style="font-size:24px;color:var(--muted)">/100</span></div>
+          <p><strong>The verdict:</strong> good bones, no protection. The email setup itself is tidy — a correct SPF record on Microsoft 365 — but the domain has <strong>no DKIM signing and no DMARC record at all</strong>. Right now, anyone in the world can send email that looks like it comes from this company, and nothing would stop it or even report it.</p>
+        </div>
+        <p class="smallprint">How the score works: 100 points across six checks — SPF 20, DKIM 20, DMARC 25, alignment 15, blacklists 10, mail setup 10. This domain scored SPF 20, DKIM 0, DMARC 0, alignment 5, blacklists 10, mail setup 10.</p>
+
+        <h2>What we checked</h2>
+        <table class="checks">
+          <thead>
+            <tr><th>Check</th><th>Result</th><th>What we found</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Mail setup (MX)</strong></td>
+              <td><span class="badge pass">Pass</span></td>
+              <td>Mail runs on Microsoft 365 — one MX record pointing at Microsoft's servers, set up the standard way.</td>
+            </tr>
+            <tr>
+              <td><strong>SPF</strong></td>
+              <td><span class="badge pass">Pass</span></td>
+              <td>A correct SPF record is published and it ends in <code class="inline">-all</code> (hard fail — the strong setting). It uses just 1 of the 10 DNS lookups SPF allows, so there is plenty of headroom.</td>
+            </tr>
+            <tr>
+              <td><strong>DKIM</strong></td>
+              <td><span class="badge fail">Fail</span></td>
+              <td>No DKIM key found at any of the six standard selectors we checked (google, default, selector1, selector2, k1, s1). For a Microsoft 365 domain, the selector1 and selector2 records are missing — which means DKIM signing is not switched on for this domain.</td>
+            </tr>
+            <tr>
+              <td><strong>DMARC</strong></td>
+              <td><span class="badge fail">Fail</span></td>
+              <td>No DMARC record published at all. There is no policy telling inbox providers what to do with fake mail using this domain, and no reporting address to see abuse.</td>
+            </tr>
+            <tr>
+              <td><strong>Alignment</strong></td>
+              <td><span class="badge warn">Warning</span></td>
+              <td>SPF is set up so genuine Microsoft 365 mail can align with the domain. But with no DKIM and no DMARC, nothing is actually checking or enforcing alignment — it is passing by setup, not by protection.</td>
+            </tr>
+            <tr>
+              <td><strong>Blacklists</strong></td>
+              <td><span class="badge pass">Pass</span></td>
+              <td>The sending IP we checked is not listed on Spamhaus ZEN, SpamCop, or Barracuda — the three lists that matter most for inbox placement.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2>Findings, in plain English</h2>
+
+        <div class="finding high">
+          <p class="sev">Severity: High</p>
+          <h3>1. No DMARC record — the domain can be impersonated</h3>
+          <p>DMARC is the record that tells Gmail, Outlook, and Yahoo: "if an email claims to be from us but fails the checks, block it — and tell us about it." This domain doesn't have one.</p>
+          <p><strong>What that means for the business:</strong> a scammer can send invoices, quote requests, or "updated bank details" emails that genuinely appear to come from this company. Customers can't tell the difference, the company never sees it happening, and one incident can burn years of trust. It also means the domain doesn't meet the sender requirements Google and Yahoo now apply to business senders.</p>
+        </div>
+
+        <div class="finding high">
+          <p class="sev">Severity: High</p>
+          <h3>2. DKIM is not switched on — email isn't being signed</h3>
+          <p>DKIM adds a tamper-proof digital signature to every outgoing email. This domain sends through Microsoft 365, which supports DKIM — but the DNS records that turn it on were never published, so mail goes out unsigned.</p>
+          <p><strong>What that means for the business:</strong> inbox providers trust signed mail more. Unsigned mail from a domain with no DMARC is the weakest possible combination — it looks exactly like the setup scammers use.</p>
+        </div>
+
+        <div class="finding good">
+          <p class="sev">Severity: None — good news</p>
+          <h3>3. SPF is done properly</h3>
+          <p>The SPF record authorises Microsoft 365 and nothing else, ends in a hard fail (<code class="inline">-all</code>), and uses only 1 DNS lookup out of the 10 allowed. No changes needed here — this is the record most small businesses get wrong, and this one is right.</p>
+        </div>
+
+        <div class="finding good">
+          <p class="sev">Severity: None — good news</p>
+          <h3>4. No blacklist problems</h3>
+          <p>The mail server IP is clean on Spamhaus ZEN, SpamCop, and Barracuda. Deliverability trouble for this domain is an authentication problem, not a reputation problem — which makes it fully fixable.</p>
+        </div>
+
+        <h2>The fix plan</h2>
+        <p>These are the exact records we would publish (shown with the sample domain). Fixing this domain takes two DNS records and one switch inside Microsoft 365 — this is precisely what the <a href="/#services">$149 full setup</a> does for you, or you can hand this plan to whoever manages your DNS.</p>
+
+        <p><strong>Step 1 — Turn on DKIM.</strong> Publish these two CNAME records, then enable DKIM for the domain in the Microsoft 365 admin portal (the portal shows the exact target hostnames for your account):</p>
+        <pre class="record">selector1._domainkey.clientdomain.com
+  → selector1-clientdomain-com._domainkey.&lt;your-tenant&gt;.onmicrosoft.com
+
+selector2._domainkey.clientdomain.com
+  → selector2-clientdomain-com._domainkey.&lt;your-tenant&gt;.onmicrosoft.com</pre>
+
+        <p><strong>Step 2 — Add DMARC in watch mode first.</strong> This changes nothing about delivery — it just starts sending you reports of who is sending mail using your domain:</p>
+        <pre class="record">_dmarc.clientdomain.com  (TXT)
+v=DMARC1; p=none; rua=mailto:dmarc-reports@clientdomain.com; fo=1</pre>
+
+        <p><strong>Step 3 — Enforce, once the reports are clean</strong> (usually 2–4 weeks). Move the policy up in stages — quarantine, then reject — so fake mail gets blocked:</p>
+        <pre class="record">_dmarc.clientdomain.com  (TXT)
+v=DMARC1; p=reject; rua=mailto:dmarc-reports@clientdomain.com; fo=1</pre>
+
+        <p><strong>SPF:</strong> no change. The existing record stays exactly as it is.</p>
+
+        <h2>What "fixed" looks like</h2>
+        <p>After these fixes and a re-check: DKIM signing every outgoing email, DMARC reports arriving daily, and a <code class="inline">p=reject</code> policy telling every major inbox provider to refuse impersonation attempts. A domain in that state would be expected to score in the 90s on this same audit — and, more importantly, its customers could trust that an email from the company really is from the company.</p>
+
+        <div class="limits-box">
+          <h2 style="margin-top:0">Honest limits</h2>
+          <p>Authentication is the foundation of deliverability — it proves your email is really from you. It does not, by itself, guarantee inbox placement. Where your mail lands also depends on your sending reputation, your list quality, and your content. Any service that promises "100% inbox" is not telling you the truth. What this audit guarantees is a straight answer about your authentication, in plain English, with the exact fixes.</p>
+        </div>
+
+        <div class="cta-box">
+          <h2 style="margin-top:0">Get this audit for your own domain — $49</h2>
+          <p>Same checks, same plain-English report, same fix plan — run on <em>your</em> domain. Written report delivered within 48 hours. If you then order the full setup, the $49 comes off the price. Ongoing monitoring is also available at $29/month.</p>
+          <a class="btn-wa" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%27d%20like%20the%20%2449%20deliverability%20audit%20for%20my%20domain." target="_blank" rel="noopener">Order the $49 audit on WhatsApp</a>
+          <p style="margin-top:14px">Prefer email? <a href="mailto:saqibnaseer077@gmail.com">saqibnaseer077@gmail.com</a></p>
+        </div>
+
+        <p class="smallprint">About this sample: the checks above are real. They were run on October 29, 2026 against the public DNS records of a real US business, exactly the way a paid audit is run. The business name and domain have been changed for privacy, and the records shown in the fix plan use the sample domain. DNS changes over time, so any audit — including this one — is a snapshot of public records on the day it was run.</p>
+      </article>
+    </div>
+    <footer class="footer">
+      <div>
+        <p>Results are guidance, not a replacement for testing with your sending provider.</p>
+        <p style="margin-top:6px">Contact: saqibnaseer077@gmail.com · +92 303 5544889</p>
+      </div>
+      <nav aria-label="Legal">
+        <a href="/terms">Terms</a>
+        <a href="/about">About</a>
+        <a href="/#guides">Guides</a>
+      </nav>
+    </footer>
+  </div>
+<div id="cookie-banner" class="cookie-banner" hidden>
+  <p>We use cookies to understand site traffic and improve OutboundAuth. <a href="/privacy">Privacy Policy</a></p>
+  <div class="cookie-actions">
+    <button id="cookie-accept" type="button">Accept</button>
+    <button id="cookie-decline" type="button">Decline</button>
+  </div>
+</div>
+<script src="/consent.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () { navigator.serviceWorker.register('/sw.js').catch(function () {}); });
+}
+</script>
+</body>
+</html>
