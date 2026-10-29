@@ -285,6 +285,52 @@ gtag('config','G-PLRGVLMB8S');
       </div>
     </section>
 
+    <section class="section" id="which-service" aria-labelledby="which-service-title">
+      <div class="section-head">
+        <h2 id="which-service-title">Not sure what you need?</h2>
+        <p>Everything above this section is free — the tools, the Copilot, the guides. The three services exist for one reason: sometimes you want a specialist's eyes, or a specialist's hands, instead of your own time. Here's the honest way to tell which one you need — including when the answer is "none of them."</p>
+      </div>
+      <h3>How to pick</h3>
+      <ul>
+        <li><strong>Nothing is set up yet?</strong> You have two honest options: follow the guides and do it yourself (they're the exact process, free), or take the <strong>Full Authentication Setup ($149)</strong> and have it configured, tested and handed over.</li>
+        <li><strong>It's set up, but mail still lands in spam?</strong> Don't pay to rebuild blind. Take the <strong>Deliverability Audit ($49)</strong> first — a written report that names what's broken, in priority order, within 48 hours. <a href="/sample-audit">See a sample audit report</a>.</li>
+        <li><strong>It's set up and working?</strong> Records break quietly — a vendor changes an include, a record expires, a blacklist lands. <strong>Monthly Monitoring ($29/month)</strong> is the weekly re-check that catches it before your campaigns do.</li>
+        <li><strong>Just checking one record?</strong> Use the free tools above. No honest specialist would charge you for that.</li>
+      </ul>
+      <h3>Honest comparisons</h3>
+      <ul>
+        <li><strong>Free tools vs the Audit:</strong> the tools check the records you paste and explain what's wrong with them. The audit looks at your actual sending — headers, reports, the whole picture — and tells you which fix matters first. If you can read DNS comfortably, the tools are probably enough.</li>
+        <li><strong>Audit vs Full Setup:</strong> the audit is the diagnosis, in writing. The setup is the cure, done for you. And the $49 is credited toward the setup if you upgrade — so the audit is never wasted money.</li>
+        <li><strong>Warmup tools vs authentication:</strong> warmup cannot fix broken SPF or DKIM. It warms a domain whose foundation is cracked — the cracks win. Fix authentication first; warm up after, if at all. (The <a href="/guides/email-warmup-what-actually-works">warmup guide</a> shows what actually works.)</li>
+        <li><strong>One-time setup vs Monitoring:</strong> a setup is a snapshot of a healthy day. Monitoring is what notices the unhealthy day — usually weeks before you'd spot it yourself in a dead campaign.</li>
+      </ul>
+      <h3>Who each service is for</h3>
+      <ul>
+        <li><strong>The Audit ($49)</strong> — for senders whose mail used to inbox and suddenly doesn't, and who want the cause in writing before spending another dollar.</li>
+        <li><strong>The Full Setup ($149)</strong> — for new cold-email setups and Google Workspace / Instantly senders who want it right the first time, tested before handover.</li>
+        <li><strong>Monitoring ($29/mo)</strong> — for agencies and senders whose domains earn money every week, and who can't afford a silent break.</li>
+      </ul>
+      <h3>Questions buyers ask</h3>
+      <div class="faq-list">
+        <details>
+          <summary>Can I just do all of this myself, free?</summary>
+          <p>Yes. The tools and guides on this page are the exact process — nothing is held back. You pay for time and certainty, not secrets.</p>
+        </details>
+        <details>
+          <summary>How do I know if my problem is authentication or reputation?</summary>
+          <p>Run the free domain health check above. If SPF, DKIM and DMARC all pass and mail still lands in spam, your problem is reputation or content, not records — the <a href="/guides/cold-email-deliverability-checklist">deliverability checklist</a> walks the checks in the right order.</p>
+        </details>
+        <details>
+          <summary>I only send from Google Workspace. Do I still need DMARC?</summary>
+          <p>Yes. Workspace can sign your mail (DKIM) and authorize its servers (SPF), but DMARC is your domain's own policy for what receivers should do when checks fail — Workspace doesn't set that for you. The <a href="/guides/google-workspace-spf-dkim-dmarc-setup">Workspace setup guide</a> walks through the exact clicks.</p>
+        </details>
+        <details>
+          <summary>What happens after I order on WhatsApp?</summary>
+          <p>For the audit: your written report lands within 48 hours. For the setup: your records are configured and tested, and handed over inside the 7-day guarantee window — inbox-ready means SPF, DKIM and DMARC set up, passing and tested.</p>
+        </details>
+      </div>
+    </section>
+
     <section class="section" id="about" aria-labelledby="about-title">
       <div class="section-head"><h2 id="about-title">About</h2></div>
       <div class="about-card">
@@ -305,6 +351,38 @@ gtag('config','G-PLRGVLMB8S');
           <span class="guides-count">Guide <b id="guides-n">1</b> of 12</span>
           <span class="guides-bar"><span id="guides-fill"></span></span>
         </div>
+      </div>
+      <div class="guides-start">
+        <h3>Where do I start?</h3>
+        <p>Twelve plain-language guides, written for senders, not DNS engineers. If you're new to this, don't read them in the order they're listed — read them in the order you'd fix things:</p>
+        <ol>
+          <li><a href="/guides/cold-email-deliverability-checklist"><strong>The cold email deliverability checklist</strong></a> — 20 checks across authentication, warmup, list hygiene, content and volume, before you press send.</li>
+          <li><a href="/guides/spf-explained"><strong>SPF explained</strong></a> — authorize the servers allowed to send for your domain.</li>
+          <li><a href="/guides/dkim-explained"><strong>DKIM explained</strong></a> — sign your mail so receivers can prove it's genuine and unaltered.</li>
+          <li><a href="/guides/dmarc-guide"><strong>The DMARC rollout guide</strong></a> — tie it together: from p=none to p=reject, without breaking your mail flow.</li>
+          <li><strong>Then the problem guides below</strong> — each one is a specific symptom, fixed.</li>
+        </ol>
+        <h3>SPF vs DKIM vs DMARC — the 30-second version</h3>
+        <ul>
+          <li><strong>SPF</strong> proves the <em>server</em> was allowed to send. It doesn't prove the message wasn't changed on the way.</li>
+          <li><strong>DKIM</strong> proves the <em>message</em> is genuine and unaltered. It doesn't, on its own, say what to do when a check fails.</li>
+          <li><strong>DMARC</strong> is your <em>policy</em>: it ties SPF and DKIM to your domain and tells receivers what to do with failures — watch them, quarantine them, or reject them. You need all three; each covers a gap the others leave.</li>
+        </ul>
+        <h3>Who each guide is for</h3>
+        <ul>
+          <li><a href="/guides/cold-email-deliverability-checklist"><strong>The cold email deliverability checklist</strong></a> — for anyone about to launch a campaign: run it before you press send.</li>
+          <li><a href="/guides/why-emails-go-to-spam"><strong>Why your cold emails go to spam</strong></a> — for senders whose mail is landing in spam and who don't yet know which of the four levers is at fault.</li>
+          <li><a href="/guides/spf-explained"><strong>SPF records explained</strong></a> — for anyone setting up SPF, or repairing a record that keeps failing.</li>
+          <li><a href="/guides/spf-10-lookup-limit"><strong>The SPF 10-lookup limit</strong></a> — for domains whose SPF shows a permerror, or breaks every time a new tool is added.</li>
+          <li><a href="/guides/dkim-explained"><strong>DKIM explained</strong></a> — for senders whose mail isn't being signed, or whose signatures fail.</li>
+          <li><a href="/guides/dmarc-guide"><strong>DMARC rollout: p=none to p=reject</strong></a> — for domains adding DMARC without breaking legitimate mail.</li>
+          <li><a href="/guides/dmarc-policies-none-quarantine-reject"><strong>DMARC policies: none vs quarantine vs reject</strong></a> — for anyone deciding which policy is safe <em>today</em>.</li>
+          <li><a href="/guides/google-workspace-spf-dkim-dmarc-setup"><strong>Google Workspace SPF, DKIM &amp; DMARC setup</strong></a> — for Workspace senders who want the exact admin-console clicks.</li>
+          <li><a href="/guides/email-headers-like-a-deliverability-pro"><strong>How to read email headers like a pro</strong></a> — for anyone checking who really sent a message, or decoding a bounce.</li>
+          <li><a href="/guides/email-warmup-what-actually-works"><strong>Email warmup: what actually works</strong></a> — for senders deciding whether warmup is worth their time and money.</li>
+          <li><a href="/guides/bimi-get-your-logo-in-the-inbox"><strong>BIMI: get your logo in the inbox</strong></a> — for brands at DMARC enforcement who want their logo beside their emails.</li>
+          <li><a href="/guides/zendesk-spf-suspended-tickets"><strong>Zendesk SPF suspended tickets</strong></a> — for support teams whose tickets started landing in the Suspended view.</li>
+        </ul>
       </div>
       <div class="guide-grid" id="guides-track">
         <a class="guide-card" href="/guides/cold-email-deliverability-checklist" data-tilt="-5"><span class="guide-thumb"><img src="images/thumbs/cold-email-checklist.jpg" alt="" loading="lazy" width="640" height="360"></span>
