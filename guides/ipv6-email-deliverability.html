@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="theme-color" content="#0b1715" />
+  <meta name="google-site-verification" content="lDGa9UqOTxwjHKAL1mI4PlN2ggJn2DVMSazM_CVMP5o" />
+  <meta name="description" content="Does sending email over IPv6 hurt deliverability? What Gmail and Microsoft require from IPv6 senders — PTR, forward-confirmed DNS, SPF ip6 — and why most senders still use IPv4." />
+  <meta property="og:title" content="IPv6 and email deliverability: what actually changes — OutboundAuth" />
+  <meta property="og:description" content="IPv6 is not penalised, but receivers hold it to a stricter standard. The requirements, the silent dual-stack failure, and the fix." />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://outboundauth.com/guides/ipv6-email-deliverability" />
+  <meta name="twitter:card" content="summary" />
+  <meta property="og:image" content="https://outboundauth.com/og-cover.png" />
+  <link rel="canonical" href="https://outboundauth.com/guides/ipv6-email-deliverability" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23087f5b'/%3E%3Cpath d='M20 33l9 9 15-17' stroke='white' stroke-width='6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>IPv6 and email deliverability: what actually changes — OutboundAuth</title>
+<!-- Google Analytics 4 -->
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied'});
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-PLRGVLMB8S"></script>
+<script>
+gtag('js', new Date());
+gtag('config','G-PLRGVLMB8S');
+</script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="/"><span class="brand-mark">✓</span>OutboundAuth</a>
+      <nav class="topnav" aria-label="Site">
+        <a href="/#toolkit">Tools</a>
+        <a href="/#services">Pricing</a>
+        <a href="/#guides">Guides</a>
+                <a href="/about">About</a>
+<a class="cta" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20need%20help%20with%20my%20email%20authentication." target="_blank" rel="noopener">WhatsApp me</a>
+      </nav>
+    </div>
+  </header>
+  <div class="shell">
+    <div class="article-wrap">
+      <a class="crumb" href="/#guides">← All guides</a>
+      <article class="article">
+        <div class="kicker">Guide · Deliverability</div>
+        <h1>IPv6 and email deliverability: what actually changes</h1>
+        <p class="lede">IPv6 itself is not penalised. A correctly configured IPv6 sender delivers fine. The problem is that receivers hold IPv6 to a stricter standard than IPv4 — and most servers that start sending over IPv6 were never configured for it. Half-configured IPv6 is the worst state your mail can be in.</p>
+
+        <h2>The short answer</h2>
+        <p>Sending over IPv6 does not hurt deliverability <em>by itself</em>. Gmail and Microsoft both accept IPv6 mail, and both publish requirements for it. What hurts is the gap between the two protocols: checks that are merely "good practice" on IPv4 are <strong>hard requirements</strong> on IPv6. Meet them and you deliver. Miss one and IPv6 mail fails harder and faster than IPv4 mail ever would.</p>
+
+        <h2>What receivers require from IPv6 senders</h2>
+        <ul>
+          <li><strong>A PTR record, forward-confirmed.</strong> Your IPv6 address must reverse-resolve to a hostname, and that hostname must resolve back to the same IPv6 address (FCrDNS). A missing or generic PTR on IPv4 is sloppy; on IPv6, Gmail and Microsoft reject for it outright.</li>
+          <li><strong>SPF that actually covers the IPv6 address.</strong> Your record must include the sending IPv6 range via an <span class="inline">ip6</span> term, or an <span class="inline">include</span> that covers it. Good news: <span class="inline">ip6</span> terms cost zero DNS lookups, so they don't eat your <a href="/guides/spf-10-lookup-limit">10-lookup budget</a>.</li>
+          <li><strong>DKIM and DMARC, unchanged.</strong> Authentication is protocol-agnostic — the same signatures and alignment rules apply. But there is no slack: on IPv6, receivers expect SPF <em>or</em> DKIM passing with alignment, every time.</li>
+          <li><strong>A reputation you build yourself.</strong> IP reputation belongs to the exact address, not the server or the domain. Your IPv6 address starts with zero history no matter how good your IPv4 reputation is — it needs its own <a href="/guides/email-warmup-what-actually-works">warmup</a>.</li>
+        </ul>
+
+        <h2>Why IPv6 reputation is fragile</h2>
+        <p>IPv6 space is enormous, so receivers can't track addresses the way they do in IPv4. Two consequences follow. First, unknown IPv6 addresses get extra suspicion by default, because there is no track record to trust. Second, many blocklists and filters operate on the <span class="inline">/64</span> range rather than a single address. If your hosting provider assigns you an address inside a /64 that someone else abused, you can inherit their problem. A dedicated IPv6 address — ideally in your own clean /64 — is the safe setup.</p>
+        <p>Microsoft deserves a specific mention: its IPv6 acceptance has historically been the least reliable of the big receivers, with deferrals and connection-level rejections common even for configured senders. This is why many high-volume senders and ESPs deliberately route Outlook.com, Hotmail, and Live.com traffic over IPv4 while sending IPv6 elsewhere. Tools like PowerMTA support per-domain routing for exactly this reason.</p>
+
+        <h2>The silent failure: dual-stack servers</h2>
+        <p>The most common IPv6 deliverability problem is not a deliberate IPv6 rollout. It's a server upgrade. Dual-stack servers <strong>prefer IPv6 by default</strong>, so the day your host enables IPv6, your mail quietly starts leaving over the new addresses — while your SPF record, PTR setup, and reputation work were all built for IPv4. The symptoms are distinctive: sudden SPF failures or outright rejections at Gmail and Microsoft only, while IPv4 receivers keep accepting your mail. If delivery broke "for no reason" after a server or network change, check which protocol the mail actually left on before you touch anything else — the fix is in your <a href="/guides/email-headers-like-a-deliverability-pro">headers</a>, where the sending IP is recorded.</p>
+
+        <h2>Should you send over IPv6?</h2>
+        <ol>
+          <li><strong>IPv4-only today?</strong> Nothing to do. IPv4 sending is fully supported everywhere and will be for years.</li>
+          <li><strong>Dual-stack or IPv6-capable server?</strong> You have exactly two safe options. Either configure IPv6 completely — dedicated address, forward-confirmed PTR, SPF <span class="inline">ip6</span> coverage, slow warmup — or pin your mail server to send over IPv4 and disable IPv6 sending entirely.</li>
+          <li><strong>Sending to a lot of Microsoft addresses?</strong> Route those domains over IPv4 even if the rest of your mail goes IPv6. It is what the big senders do, for good reason.</li>
+        </ol>
+        <p>Whichever route you choose, verify the basics afterwards: run your domain through the <a href="/#toolkit">free deliverability checker</a> to confirm SPF, DKIM, and DMARC are all in place, and send test mail to Gmail and Outlook accounts to see which protocol it arrives on.</p>
+
+        <div class="cta-box">
+          <h3>Mail broke after a server change?</h3>
+          <p>I audit sending setups for cold emailers and businesses — authentication, IP configuration, and reputation — and hand you a setup that passes on both protocols.</p>
+          <a class="btn primary" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20read%20your%20IPv6%20deliverability%20guide%20and%20need%20help%20with%20my%20sending%20setup." target="_blank" rel="noopener">WhatsApp Saqib</a>
+          <a class="btn" href="/#services" style="margin-left:8px">See packages</a>
+        </div>
+      </article>
+    </div>
+    <footer class="footer">
+      <div>
+        <p>Results are guidance, not a replacement for testing with your sending provider.</p>
+        <p style="margin-top:6px">Contact: saqibnaseer077@gmail.com · +92 303 5544889</p>
+      </div>
+      <nav aria-label="Legal">
+        <a href="/guides/spf-explained">SPF guide</a>
+        <a href="/guides/dmarc-guide">DMARC guide</a>
+        <a href="/guides/dkim-explained">DKIM guide</a>
+        <a href="/guides/why-emails-go-to-spam">Spam guide</a>
+        <a href="/guides/google-workspace-spf-dkim-dmarc-setup">Workspace setup guide</a>
+        <a href="/guides/email-warmup-what-actually-works">Email warmup guide</a>
+        <a href="/guides/spf-10-lookup-limit">SPF 10-lookup limit guide</a>
+        <a href="/guides/ipv6-email-deliverability">IPv6 deliverability guide</a>
+        <a href="/guides/dmarc-policies-none-quarantine-reject">DMARC policies guide</a>
+        <a href="/guides/email-headers-like-a-deliverability-pro">Email headers guide</a>
+        <a href="/guides/bimi-get-your-logo-in-the-inbox">BIMI guide</a>
+        <a href="/guides/cold-email-deliverability-checklist">Checklist guide</a>
+        <a href="/guides/microsoft-365-spf-dkim-dmarc-setup">Microsoft 365 setup guide</a>
+        <a href="/privacy">Privacy</a>
+        <a href="/terms">Terms</a>
+        <a href="/about">About</a>
+      </nav>
+    </footer>
+  </div>
+  <a class="wa-float" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20need%20help%20with%20my%20email%20setup." target="_blank" rel="noopener" aria-label="Chat on WhatsApp">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3C9.4 3 4 8.4 4 15c0 2.4.7 4.6 2 6.6L4 29l7.6-2c2 .9 4.1 1.5 6.4 1.5 6.6 0 12-5.4 12-12S22.6 3 16 3zm0 21.8c-2 0-3.9-.5-5.5-1.5l-.4-.2-4.5 1.2 1.2-4.4-.3-.4c-1-1.7-1.6-3.7-1.6-5.7C4.9 9.4 10.4 4 16 4s11.1 5.4 11.1 11S21.6 24.8 16 24.8zm6.1-8.1c-.3-.2-1.9-1-2.2-1.1-.3-.1-.5-.2-.7.2-.2.3-.8 1.1-1 1.3-.2.2-.4.2-.7.1-.3-.2-1.4-.5-2.6-1.6-.9-.9-1.6-1.9-1.8-2.2-.2-.3 0-.5.1-.7l.5-.6c.2-.2.2-.3.3-.6.1-.2 0-.4 0-.6-.1-.2-.7-1.8-1-2.4-.3-.6-.5-.5-.7-.6h-.6c-.2 0-.6.2-.9.4-.3.3-1.1 1.1-1.1 2.7s1.2 3.1 1.3 3.4c.2.2 2.2 3.4 5.4 4.7.8.3 1.3.5 1.8.7.8.2 1.4.2 2 .1.6-.1 1.9-.8 2.2-1.5.3-.7.3-1.4.2-1.5-.1-.2-.3-.2-.7-.4z"/></svg>
+  </a>
+<div id="cookie-banner" class="cookie-banner" hidden>
+  <p>We use cookies to understand site traffic and improve OutboundAuth. <a href="/privacy">Privacy Policy</a></p>
+  <div class="cookie-actions">
+    <button id="cookie-accept" type="button">Accept</button>
+    <button id="cookie-decline" type="button">Decline</button>
+  </div>
+</div>
+<script src="/consent.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () { navigator.serviceWorker.register('/sw.js').catch(function () {}); });
+}
+</script>
+</body>
+</html>
