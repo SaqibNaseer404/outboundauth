@@ -352,38 +352,6 @@ gtag('config','G-PLRGVLMB8S');
           <span class="guides-bar"><span id="guides-fill"></span></span>
         </div>
       </div>
-      <div class="guides-start">
-        <h3>Where do I start?</h3>
-        <p>Twelve plain-language guides, written for senders, not DNS engineers. If you're new to this, don't read them in the order they're listed — read them in the order you'd fix things:</p>
-        <ol>
-          <li><a href="/guides/cold-email-deliverability-checklist"><strong>The cold email deliverability checklist</strong></a> — 20 checks across authentication, warmup, list hygiene, content and volume, before you press send.</li>
-          <li><a href="/guides/spf-explained"><strong>SPF explained</strong></a> — authorize the servers allowed to send for your domain.</li>
-          <li><a href="/guides/dkim-explained"><strong>DKIM explained</strong></a> — sign your mail so receivers can prove it's genuine and unaltered.</li>
-          <li><a href="/guides/dmarc-guide"><strong>The DMARC rollout guide</strong></a> — tie it together: from p=none to p=reject, without breaking your mail flow.</li>
-          <li><strong>Then the problem guides below</strong> — each one is a specific symptom, fixed.</li>
-        </ol>
-        <h3>SPF vs DKIM vs DMARC — the 30-second version</h3>
-        <ul>
-          <li><strong>SPF</strong> proves the <em>server</em> was allowed to send. It doesn't prove the message wasn't changed on the way.</li>
-          <li><strong>DKIM</strong> proves the <em>message</em> is genuine and unaltered. It doesn't, on its own, say what to do when a check fails.</li>
-          <li><strong>DMARC</strong> is your <em>policy</em>: it ties SPF and DKIM to your domain and tells receivers what to do with failures — watch them, quarantine them, or reject them. You need all three; each covers a gap the others leave.</li>
-        </ul>
-        <h3>Who each guide is for</h3>
-        <ul>
-          <li><a href="/guides/cold-email-deliverability-checklist"><strong>The cold email deliverability checklist</strong></a> — for anyone about to launch a campaign: run it before you press send.</li>
-          <li><a href="/guides/why-emails-go-to-spam"><strong>Why your cold emails go to spam</strong></a> — for senders whose mail is landing in spam and who don't yet know which of the four levers is at fault.</li>
-          <li><a href="/guides/spf-explained"><strong>SPF records explained</strong></a> — for anyone setting up SPF, or repairing a record that keeps failing.</li>
-          <li><a href="/guides/spf-10-lookup-limit"><strong>The SPF 10-lookup limit</strong></a> — for domains whose SPF shows a permerror, or breaks every time a new tool is added.</li>
-          <li><a href="/guides/dkim-explained"><strong>DKIM explained</strong></a> — for senders whose mail isn't being signed, or whose signatures fail.</li>
-          <li><a href="/guides/dmarc-guide"><strong>DMARC rollout: p=none to p=reject</strong></a> — for domains adding DMARC without breaking legitimate mail.</li>
-          <li><a href="/guides/dmarc-policies-none-quarantine-reject"><strong>DMARC policies: none vs quarantine vs reject</strong></a> — for anyone deciding which policy is safe <em>today</em>.</li>
-          <li><a href="/guides/google-workspace-spf-dkim-dmarc-setup"><strong>Google Workspace SPF, DKIM &amp; DMARC setup</strong></a> — for Workspace senders who want the exact admin-console clicks.</li>
-          <li><a href="/guides/email-headers-like-a-deliverability-pro"><strong>How to read email headers like a pro</strong></a> — for anyone checking who really sent a message, or decoding a bounce.</li>
-          <li><a href="/guides/email-warmup-what-actually-works"><strong>Email warmup: what actually works</strong></a> — for senders deciding whether warmup is worth their time and money.</li>
-          <li><a href="/guides/bimi-get-your-logo-in-the-inbox"><strong>BIMI: get your logo in the inbox</strong></a> — for brands at DMARC enforcement who want their logo beside their emails.</li>
-          <li><a href="/guides/zendesk-spf-suspended-tickets"><strong>Zendesk SPF suspended tickets</strong></a> — for support teams whose tickets started landing in the Suspended view.</li>
-        </ul>
-      </div>
       <div class="guide-grid" id="guides-track">
         <a class="guide-card" href="/guides/microsoft-365-spf-dkim-dmarc-setup" data-tilt="-5"><span class="guide-thumb"><img src="images/thumbs/microsoft-365-setup.jpg" alt="" loading="lazy" width="640" height="360"></span>
           <div class="kicker">Guide · Microsoft 365</div>
@@ -471,6 +439,41 @@ gtag('config','G-PLRGVLMB8S');
         </a>
       </div>
     </section></div></div>
+
+    <section class="section" id="start-here">
+      <div class="guides-start">
+        <h3>Where do I start?</h3>
+        <p>Fourteen plain-language guides, written for senders, not DNS engineers. If you're new to this, don't read them in the order they're listed — read them in the order you'd fix things:</p>
+        <ol>
+          <li><a href="/guides/cold-email-deliverability-checklist"><strong>The cold email deliverability checklist</strong></a> — 20 checks across authentication, warmup, list hygiene, content and volume, before you press send.</li>
+          <li><a href="/guides/spf-explained"><strong>SPF explained</strong></a> — authorize the servers allowed to send for your domain.</li>
+          <li><a href="/guides/dkim-explained"><strong>DKIM explained</strong></a> — sign your mail so receivers can prove it's genuine and unaltered.</li>
+          <li><a href="/guides/dmarc-guide"><strong>The DMARC rollout guide</strong></a> — tie it together: from p=none to p=reject, without breaking your mail flow.</li>
+          <li><strong>Then the problem guides in the cards above</strong> — each one is a specific symptom, fixed.</li>
+        </ol>
+        <h3>SPF vs DKIM vs DMARC — the 30-second version</h3>
+        <ul>
+          <li><strong>SPF</strong> proves the <em>server</em> was allowed to send. It doesn't prove the message wasn't changed on the way.</li>
+          <li><strong>DKIM</strong> proves the <em>message</em> is genuine and unaltered. It doesn't, on its own, say what to do when a check fails.</li>
+          <li><strong>DMARC</strong> is your <em>policy</em>: it ties SPF and DKIM to your domain and tells receivers what to do with failures — watch them, quarantine them, or reject them. You need all three; each covers a gap the others leave.</li>
+        </ul>
+        <h3>Who each guide is for</h3>
+        <ul>
+          <li><a href="/guides/cold-email-deliverability-checklist"><strong>The cold email deliverability checklist</strong></a> — for anyone about to launch a campaign: run it before you press send.</li>
+          <li><a href="/guides/why-emails-go-to-spam"><strong>Why your cold emails go to spam</strong></a> — for senders whose mail is landing in spam and who don't yet know which of the four levers is at fault.</li>
+          <li><a href="/guides/spf-explained"><strong>SPF records explained</strong></a> — for anyone setting up SPF, or repairing a record that keeps failing.</li>
+          <li><a href="/guides/spf-10-lookup-limit"><strong>The SPF 10-lookup limit</strong></a> — for domains whose SPF shows a permerror, or breaks every time a new tool is added.</li>
+          <li><a href="/guides/dkim-explained"><strong>DKIM explained</strong></a> — for senders whose mail isn't being signed, or whose signatures fail.</li>
+          <li><a href="/guides/dmarc-guide"><strong>DMARC rollout: p=none to p=reject</strong></a> — for domains adding DMARC without breaking legitimate mail.</li>
+          <li><a href="/guides/dmarc-policies-none-quarantine-reject"><strong>DMARC policies: none vs quarantine vs reject</strong></a> — for anyone deciding which policy is safe <em>today</em>.</li>
+          <li><a href="/guides/google-workspace-spf-dkim-dmarc-setup"><strong>Google Workspace SPF, DKIM &amp; DMARC setup</strong></a> — for Workspace senders who want the exact admin-console clicks.</li>
+          <li><a href="/guides/email-headers-like-a-deliverability-pro"><strong>How to read email headers like a pro</strong></a> — for anyone checking who really sent a message, or decoding a bounce.</li>
+          <li><a href="/guides/email-warmup-what-actually-works"><strong>Email warmup: what actually works</strong></a> — for senders deciding whether warmup is worth their time and money.</li>
+          <li><a href="/guides/bimi-get-your-logo-in-the-inbox"><strong>BIMI: get your logo in the inbox</strong></a> — for brands at DMARC enforcement who want their logo beside their emails.</li>
+          <li><a href="/guides/zendesk-spf-suspended-tickets"><strong>Zendesk SPF suspended tickets</strong></a> — for support teams whose tickets started landing in the Suspended view.</li>
+        </ul>
+      </div>
+    </section>
 
     <section class="section" id="faq" aria-labelledby="faq-title">
       <div class="section-head">
@@ -820,5 +823,5 @@ if ('serviceWorker' in navigator) {
   measure();render();
 })();
 </script>
-</body>
+<script src="/chat-widget.js" defer></script></body>
 </html>
