@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="theme-color" content="#0b1715" />
+  <meta name="google-site-verification" content="lDGa9UqOTxwjHKAL1mI4PlN2ggJn2DVMSazM_CVMP5o" />
+  <meta name="description" content="Email bounce codes explained in plain language: what 550, 421, 450 and 554 mean, hard vs soft bounces, and what to do when your mail bounces." />
+  <meta property="og:title" content="Email Bounce Codes Explained — OutboundAuth" />
+  <meta property="og:description" content="What 550, 421, 450 and 554 actually mean, hard vs soft bounces, and the right fix for each one." />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://outboundauth.com/guides/email-bounce-codes-explained" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta property="og:image" content="https://outboundauth.com/og-cover.png" />
+  <link rel="canonical" href="https://outboundauth.com/guides/email-bounce-codes-explained" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23087f5b'/%3E%3Cpath d='M20 33l9 9 15-17' stroke='white' stroke-width='6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Email Bounce Codes Explained: What 550, 421 &amp; Friends Actually Mean — OutboundAuth</title>
+<!-- Google Analytics 4 -->
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied'});
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-PLRGVLMB8S"></script>
+<script>
+gtag('js', new Date());
+gtag('config','G-PLRGVLMB8S');
+</script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="/"><span class="brand-mark">✓</span>OutboundAuth</a>
+      <nav class="topnav" aria-label="Site">
+        <a href="/#toolkit">Tools</a>
+        <a href="/#services">Pricing</a>
+        <a href="/#guides">Guides</a>
+                <a href="/about">About</a>
+<a class="cta" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20need%20help%20with%20my%20email%20authentication." target="_blank" rel="noopener">WhatsApp me</a>
+      </nav>
+    </div>
+  </header>
+  <div class="shell">
+    <div class="article-wrap">
+      <a class="crumb" href="/#guides">← All guides</a>
+      <article class="article">
+        <div class="kicker">Guide · Bounce codes</div>
+        <h1>Email bounce codes explained: what 550, 421 and friends actually mean</h1>
+        <p class="lede">When an email can't be delivered, the receiving server sends it back with a three-digit code — 550, 421, 450 and the rest. Each code tells you exactly what went wrong, and whether it's worth trying again. Here's how to read them.</p>
+
+        <h2>What is an SMTP bounce code?</h2>
+        <p>Every bounce carries a three-digit <span class="inline">SMTP</span> reply code, usually followed by a longer "enhanced status code" like <span class="inline">5.1.1</span>. Read the first digit first — it tells you the class of the problem:</p>
+        <ul>
+          <li><strong>2xx — success.</strong> The message was accepted. You only see these in logs, not bounces.</li>
+          <li><strong>4xx — temporary failure.</strong> The server couldn't accept the mail right now, but it might later. This is a soft bounce.</li>
+          <li><strong>5xx — permanent failure.</strong> The server will not accept this mail, ever, until something changes. This is a hard bounce.</li>
+        </ul>
+        <p>The enhanced code adds detail: <span class="inline">4.2.2</span> means "mailbox full", <span class="inline">5.1.1</span> means "mailbox doesn't exist", <span class="inline">5.7.1</span> means "blocked for policy reasons". The human-readable text after the code usually names the exact cause.</p>
+
+        <h2>What does 550 mean?</h2>
+        <p><span class="inline">550</span> is the most common hard bounce. It means the receiving server refused the message permanently. The usual reasons are:</p>
+        <ul>
+          <li><strong>The mailbox doesn't exist</strong> — "550 5.1.1 User unknown". The address is wrong, mistyped, or the account was deleted. Remove it from your list.</li>
+          <li><strong>Your domain or IP is blocked</strong> — "550 5.7.1 Service unavailable; Client host blocked". Check your sending reputation and whether your IP sits on a blocklist.</li>
+          <li><strong>Relay denied</strong> — "550 Relay not permitted". Your sending server tried to hand mail to a server that doesn't accept it. This is usually a configuration mistake on the sender's side.</li>
+        </ul>
+        <p>Never keep mailing a 550 address. Repeated hard bounces damage your sender reputation and can get your domain flagged.</p>
+
+        <h2>What does 421 mean?</h2>
+        <p><span class="inline">421</span> is a temporary failure: the receiving server is busy, rate-limiting you, or applying <span class="inline">greylisting</span> — a technique where the server rejects the first attempt from an unknown sender and accepts the retry a few minutes later. Your sending system should retry automatically, and most 421s clear on the second or third attempt.</p>
+        <p>If 421s keep coming from the same provider, you're probably sending too fast. Slow the volume down, spread the send over more time, and check your <a href="/guides/email-warmup-what-actually-works">warmup</a> is done before ramping up.</p>
+
+        <h2>What do 450, 451 and 452 mean?</h2>
+        <p>These are the other common soft bounces — all 4xx, so all temporary:</p>
+        <ul>
+          <li><span class="inline">450</span> — "Requested action not taken". Often a greylisting or policy deferral. Retry later.</li>
+          <li><span class="inline">451</span> — "Local error in processing". The receiving server hit a problem on its side — a full queue or a temporary fault. Retry later.</li>
+          <li><span class="inline">452</span> — "Insufficient system storage". The recipient's mailbox is full. Retry for a few days, then stop if it never clears.</li>
+        </ul>
+        <p>Soft bounces are normal in small numbers. They become a problem when one address soft-bounces for weeks — treat it as a dead address and remove it.</p>
+
+        <h2>What do 500, 501, 503 and 554 mean?</h2>
+        <p>These are the rest of the hard-bounce family:</p>
+        <ul>
+          <li><span class="inline">500</span> — "Syntax error, command unrecognised". Your sending software sent something the server didn't understand. Rare for normal senders; check your mail setup.</li>
+          <li><span class="inline">501</span> — "Syntax error in parameters". Usually a malformed address. Check the address for typos or bad characters.</li>
+          <li><span class="inline">503</span> — "Bad sequence of commands". The sending server spoke out of turn. Again, a setup problem, not a list problem.</li>
+          <li><span class="inline">554</span> — "Transaction failed". A catch-all permanent rejection, often used when the server won't give a specific reason — commonly spam filtering or a failed <span class="inline">SPF</span>/<span class="inline">DKIM</span>/<span class="inline">DMARC</span> check. Read the full bounce message for the detail.</li>
+        </ul>
+
+        <h2>Hard bounce vs soft bounce — what's the difference?</h2>
+        <p>A hard bounce (5xx) means "don't try again until something changes". A soft bounce (4xx) means "try again later". The practical rule is simple: <strong>remove hard bounces from your list immediately</strong>, and <strong>retry soft bounces for a few days, then remove them if they never clear</strong>. Mailing the same hard-bouncing addresses again and again is one of the fastest ways to land in spam folders — mailbox providers read it as careless sending. Run the full pre-send routine in the <a href="/guides/cold-email-deliverability-checklist">cold email deliverability checklist</a> before every campaign.</p>
+
+        <h2>What should you do when your mail bounces?</h2>
+        <ol>
+          <li><strong>Read the full bounce message</strong>, not just the code. The text after the code names the cause — "user unknown", "mailbox full", "blocked". If you only see the code in your sending tool, open the original bounce email: it contains the server's full reply. The <a href="/guides/email-headers-like-a-deliverability-pro">email headers guide</a> shows how to read the raw message.</li>
+          <li><strong>Remove every hard bounce (5xx) from your list.</strong> Do it the same day. Suppress them so they are never mailed again.</li>
+          <li><strong>Let soft bounces (4xx) retry, then clean them up.</strong> A few retries over 2–3 days is normal. After that, suppress them too.</li>
+          <li><strong>Fix the cause, not just the symptom.</strong> A wave of 550s after a list import means bad data — clean the list. A wave of 554s means check your <a href="/#toolkit">authentication with the free checker tools</a> — a broken <span class="inline">SPF</span>, <span class="inline">DKIM</span> or <span class="inline">DMARC</span> record is a common trigger.</li>
+          <li><strong>Watch your bounce rate.</strong> Under 2% is healthy for cold email. Over 5% is a warning sign — stop, clean the list, and check your setup before sending more.</li>
+        </ol>
+        <p>Bounce codes aren't error messages to ignore — they're the receiving server telling you, in plain terms, what to fix. Read them, act on them, and your deliverability will thank you.</p>
+
+        <div class="cta-box">
+          <h3>Bounces piling up and not sure why?</h3>
+          <p>I check authentication, list hygiene and sending setup, then fix the cause so your mail lands in the inbox.</p>
+          <a class="btn primary" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20read%20your%20bounce%20codes%20guide%20and%20need%20help%20with%20bounces." target="_blank" rel="noopener">WhatsApp Saqib</a>
+          <a class="btn" href="/#services" style="margin-left:8px">See packages</a>
+        </div>
+      </article>
+    </div>
+    <footer class="footer">
+      <div>
+        <p>Results are guidance, not a replacement for testing with your sending provider.</p>
+        <p style="margin-top:6px">Contact: saqibnaseer077@gmail.com · +92 303 5544889</p>
+      </div>
+      <nav aria-label="Legal">
+        <a href="/guides/spf-explained">SPF guide</a>
+        <a href="/guides/dmarc-guide">DMARC guide</a>
+        <a href="/guides/dkim-explained">DKIM guide</a>
+        <a href="/guides/why-emails-go-to-spam">Spam guide</a>
+        <a href="/guides/google-workspace-spf-dkim-dmarc-setup">Workspace setup guide</a>
+        <a href="/guides/microsoft-365-spf-dkim-dmarc-setup">Microsoft 365 setup guide</a>
+        <a href="/guides/email-warmup-what-actually-works">Email warmup guide</a>
+        <a href="/guides/spf-10-lookup-limit">SPF 10-lookup limit guide</a>
+        <a href="/guides/dmarc-policies-none-quarantine-reject">DMARC policies guide</a>
+        <a href="/guides/email-headers-like-a-deliverability-pro">Email headers guide</a>
+        <a href="/guides/bimi-get-your-logo-in-the-inbox">BIMI guide</a>
+        <a href="/guides/cold-email-deliverability-checklist">Checklist guide</a>
+        <a href="/guides/email-bounce-codes-explained">Bounce codes guide</a>
+        <a href="/privacy">Privacy</a>
+        <a href="/terms">Terms</a>
+        <a href="/about">About</a>
+      </nav>
+    </footer>
+  </div>
+  <a class="wa-float" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20need%20help%20with%20my%20email%20setup." target="_blank" rel="noopener" aria-label="Chat on WhatsApp">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3C9.4 3 4 8.4 4 15c0 2.4.7 4.6 2 6.6L4 29l7.6-2c2 .9 4.1 1.5 6.4 1.5 6.6 0 12-5.4 12-12S22.6 3 16 3zm0 21.8c-2 0-3.9-.5-5.5-1.5l-.4-.2-4.5 1.2 1.2-4.4-.3-.4c-1-1.7-1.6-3.7-1.6-5.7C4.9 9.4 10.4 4 16 4s11.1 5.4 11.1 11S21.6 24.8 16 24.8zm6.1-8.1c-.3-.2-1.9-1-2.2-1.1-.3-.1-.5-.2-.7.2-.2.3-.8 1.1-1 1.3-.2.2-.4.2-.7.1-.3-.2-1.4-.5-2.6-1.6-.9-.9-1.6-1.9-1.8-2.2-.2-.3 0-.5.1-.7l.5-.6c.2-.2.2-.3.3-.6.1-.2 0-.4 0-.6-.1-.2-.7-1.8-1-2.4-.3-.6-.5-.5-.7-.6h-.6c-.2 0-.6.2-.9.4-.3.3-1.1 1.1-1.1 2.7s1.2 3.1 1.3 3.4c.2.2 2.2 3.4 5.4 4.7.8.3 1.3.5 1.8.7.8.2 1.4.2 2 .1.6-.1 1.9-.8 2.2-1.5.3-.7.3-1.4.2-1.5-.1-.2-.3-.2-.7-.4z"/></svg>
+  </a>
+<div id="cookie-banner" class="cookie-banner" hidden>
+  <p>We use cookies to understand site traffic and improve OutboundAuth. <a href="/privacy">Privacy Policy</a></p>
+  <div class="cookie-actions">
+    <button id="cookie-accept" type="button">Accept</button>
+    <button id="cookie-decline" type="button">Decline</button>
+  </div>
+</div>
+<script src="/consent.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () { navigator.serviceWorker.register('/sw.js').catch(function () {}); });
+}
+</script>
+</body>
+</html>
