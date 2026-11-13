@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="theme-color" content="#0b1715" />
+  <meta name="google-site-verification" content="lDGa9UqOTxwjHKAL1mI4PlN2ggJn2DVMSazM_CVMP5o" />
+  <meta name="description" content="Dedicated vs shared IP for cold email, explained in plain language: what each one costs, when a dedicated IP helps, when a shared pool is safer, and how to warm either one up." />
+  <meta property="og:title" content="Dedicated vs Shared IP for Cold Email — OutboundAuth" />
+  <meta property="og:description" content="One IP just for you, or one shared with hundreds of senders? The honest trade-offs, costs, and warmup rules — in plain language." />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://outboundauth.com/guides/dedicated-vs-shared-ip-cold-email" />
+  <meta name="twitter:card" content="summary" />
+  <meta property="og:image" content="https://outboundauth.com/og-cover.png" />
+  <link rel="canonical" href="https://outboundauth.com/guides/dedicated-vs-shared-ip-cold-email" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23087f5b'/%3E%3Cpath d='M20 33l9 9 15-17' stroke='white' stroke-width='6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Dedicated vs Shared IP for Cold Email: Which One Won't Get You Burned — OutboundAuth</title>
+<!-- Google Analytics 4 -->
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied'});
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-PLRGVLMB8S"></script>
+<script>
+gtag('js', new Date());
+gtag('config','G-PLRGVLMB8S');
+</script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="/"><span class="brand-mark">✓</span>OutboundAuth</a>
+      <nav class="topnav" aria-label="Site">
+        <a href="/#toolkit">Tools</a>
+        <a href="/#services">Pricing</a>
+        <a href="/#guides">Guides</a>
+                <a href="/about">About</a>
+<a class="cta" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20need%20help%20with%20my%20email%20authentication." target="_blank" rel="noopener">WhatsApp me</a>
+      </nav>
+    </div>
+  </header>
+  <div class="shell">
+    <div class="article-wrap">
+      <a class="crumb" href="/#guides">← All guides</a>
+      <article class="article">
+        <div class="kicker">Guide · Sending infrastructure</div>
+        <h1>Dedicated vs shared IP for cold email: which one won't get you burned</h1>
+        <p class="lede">Every email you send leaves from an IP address, and Gmail and Outlook keep score on that address. Pick the wrong setup and your mail lands in spam before anyone reads a word. Here's how the two options actually work — and which one fits your volume.</p>
+
+        <h2>What is a sending IP, and why does it matter?</h2>
+        <p>An <span class="inline">IP address</span> is the number that identifies the server your email leaves from — like a return address on an envelope. Receiving servers remember it. If mail from that address is mostly wanted and engaged with, the address builds a good reputation. If it sends spam, gets ignored, or triggers complaints, the address builds a bad one — and future mail from it is more likely to be filtered or rejected.</p>
+        <p>Your <span class="inline">IP reputation</span> sits alongside your domain reputation. Authentication (<span class="inline">SPF</span>, <span class="inline">DKIM</span> and <span class="inline">DMARC</span>) proves who you are; the IP reputation is the track record of the server you send from. You need both in good shape.</p>
+
+        <h2>What is a shared IP?</h2>
+        <p>On a <span class="inline">shared IP</span>, many senders send from the same address. Your emails go out alongside emails from hundreds of other customers of the same provider — the same way many flats share one building address. The provider manages the reputation of the pool: it monitors bounces, complaints and spam reports, and removes senders who misbehave.</p>
+        <p><strong>The upside:</strong> it is cheap (usually included in your sending plan), it is already warmed up, and you can start sending right away. A good provider's pool carries a solid reputation that a small sender could never build alone.</p>
+        <p><strong>The downside:</strong> you share the reputation. If another sender on your IP blasts a bad list or gets flagged, your mail can suffer too. You cannot control who else is on the address, so the quality of the provider's policing matters more than anything else.</p>
+
+        <h2>What is a dedicated IP?</h2>
+        <p>On a <span class="inline">dedicated IP</span>, you are the only sender using that address. Its reputation is entirely yours — good or bad. Nobody else's behaviour can hurt you, and nobody else's good behaviour can help you either.</p>
+        <p><strong>The upside:</strong> full control. If your list is clean, your content is relevant and people engage, your reputation is yours alone and no bad neighbour can drag it down.</p>
+        <p><strong>The downside:</strong> it costs extra, it starts with zero reputation, and it needs warming up. A brand-new dedicated IP that suddenly sends thousands of emails looks exactly like a spammer to Gmail — so you must ramp volume slowly over 2–4 weeks. And if you stop sending for a while, the warmup fades and you have to rebuild it.</p>
+
+        <h2>Which one is better for cold email?</h2>
+        <p>For most cold emailers, <strong>a shared IP from a reputable provider is the better start</strong>. Cold email is low-volume by nature — a typical sender mails tens or hundreds of prospects a day, not tens of thousands — and that volume is far too small to build or hold a dedicated IP's reputation. A shared pool gives you an established reputation from day one, at no extra cost.</p>
+        <p>A dedicated IP only earns its keep when you send at steady, serious volume — roughly 100,000 emails a month or more, every month, from the same address — and you have the list hygiene and engagement to keep its reputation clean. Below that, a dedicated IP is usually a liability: expensive, slow to warm, and easy to damage with one bad campaign.</p>
+        <p>One more thing cold emailers often miss: the IP is only one signal. A dedicated IP does not rescue a bad list, weak authentication, or copy people mark as spam. Get the fundamentals right first — the <a href="/guides/cold-email-deliverability-checklist">deliverability checklist</a> covers all 20 of them.</p>
+
+        <h2>When should you switch to a dedicated IP?</h2>
+        <ul>
+          <li><strong>Your volume is high and steady.</strong> You send 100,000+ emails a month, every month, with no long gaps.</li>
+          <li><strong>You have proof your lists are clean.</strong> Low bounce rates, almost no complaints, and real engagement. A dedicated IP amplifies good habits — and bad ones.</li>
+          <li><strong>Your provider's shared pool is hurting you.</strong> You have checked your reputation (see below) and the pool's problems are not yours. Switching providers is often the cheaper fix — try that first.</li>
+          <li><strong>You need isolation for compliance or branding.</strong> Some businesses need their mail separated from other senders for policy reasons, regardless of volume.</li>
+        </ul>
+        <p>If none of those apply, stay shared. Spending money on a dedicated IP you cannot keep warm is worse than sharing a good pool.</p>
+
+        <h2>How do you warm up a dedicated IP?</h2>
+        <p>Warmup means building reputation gradually so receivers learn to trust the new address. A common ramp looks like this:</p>
+        <ol>
+          <li><strong>Week 1:</strong> send to your most engaged contacts only — people who open and reply. Keep it under a few hundred emails a day.</li>
+          <li><strong>Week 2:</strong> double the volume, still to engaged recipients. Watch bounces and spam complaints daily.</li>
+          <li><strong>Weeks 3–4:</strong> keep doubling every few days until you reach your normal volume, adding less-engaged segments last.</li>
+          <li><strong>Never go silent.</strong> A dedicated IP that stops sending for weeks cools down. Keep a steady baseline, even a small one.</li>
+        </ol>
+        <p>Warmup applies to domains too, not just IPs — the same gradual ramp works for new sending domains. Read the full warmup method in the <a href="/guides/email-warmup-what-actually-works">email warmup guide</a>.</p>
+
+        <h2>How do I protect my reputation on either one?</h2>
+        <p>The rules are the same whether the IP is shared or dedicated:</p>
+        <ul>
+          <li><strong>Authenticate everything.</strong> <span class="inline">SPF</span>, <span class="inline">DKIM</span> and <span class="inline">DMARC</span> on every sending domain — no exceptions.</li>
+          <li><strong>Keep lists clean.</strong> Remove hard bounces immediately and never mail an address that bounced with a <span class="inline">550</span>. See <a href="/guides/email-bounce-codes-explained">what bounce codes mean</a>.</li>
+          <li><strong>Send to people who want the mail.</strong> Targeted, relevant outreach gets replies; blasts get complaints. Complaints damage IP and domain reputation alike.</li>
+          <li><strong>Watch your volume.</strong> Ramp new domains and new campaigns gradually, and never jump from 50 to 5,000 emails in a day.</li>
+          <li><strong>Use one-click unsubscribe.</strong> Gmail and Yahoo require it for bulk senders, and it keeps frustrated recipients from hitting "report spam" instead.</li>
+        </ul>
+
+        <h2>How can I check my IP reputation?</h2>
+        <p>Start with <span class="inline">Google Postmaster Tools</span> — free, and it shows your domain and IP reputation as Google sees it, plus spam rate and authentication results. Microsoft's <span class="inline">SNDS</span> (Smart Network Data Services) shows the same for Outlook and Hotmail. For blocklists, check whether your IP appears on any public list with a lookup tool such as MXToolbox.</p>
+        <p>If your IP reputation is low but your own sending is clean, the problem may be the shared pool — raise it with your provider, or move. And before any campaign, run your domain through the <a href="/#toolkit">free authentication checker</a> to confirm SPF, DKIM and DMARC are all passing.</p>
+
+        <div class="cta-box">
+          <h3>Not sure your sending setup will hold up?</h3>
+          <p>I check authentication, IP reputation and warmup for cold emailers — and fix what is dragging your mail into spam.</p>
+          <a class="btn primary" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20read%20your%20dedicated%20vs%20shared%20IP%20guide%20and%20want%20help%20with%20my%20sending%20setup." target="_blank" rel="noopener">WhatsApp Saqib</a>
+          <a class="btn" href="/#services" style="margin-left:8px">See packages</a>
+        </div>
+      </article>
+    </div>
+    <footer class="footer">
+      <div>
+        <p>Results are guidance, not a replacement for testing with your sending provider.</p>
+        <p style="margin-top:6px">Contact: saqibnaseer077@gmail.com · +92 303 5544889</p>
+      </div>
+      <nav aria-label="Legal">
+        <a href="/guides/spf-explained">SPF guide</a>
+        <a href="/guides/dmarc-guide">DMARC guide</a>
+        <a href="/guides/dkim-explained">DKIM guide</a>
+        <a href="/guides/why-emails-go-to-spam">Spam guide</a>
+        <a href="/guides/google-workspace-spf-dkim-dmarc-setup">Workspace setup guide</a>
+        <a href="/guides/microsoft-365-spf-dkim-dmarc-setup">Microsoft 365 setup guide</a>
+        <a href="/guides/email-warmup-what-actually-works">Email warmup guide</a>
+        <a href="/guides/spf-10-lookup-limit">SPF 10-lookup limit guide</a>
+        <a href="/guides/dmarc-policies-none-quarantine-reject">DMARC policies guide</a>
+        <a href="/guides/email-headers-like-a-deliverability-pro">Email headers guide</a>
+        <a href="/guides/bimi-get-your-logo-in-the-inbox">BIMI guide</a>
+        <a href="/guides/cold-email-deliverability-checklist">Checklist guide</a>
+        <a href="/guides/email-bounce-codes-explained">Bounce codes guide</a>
+        <a href="/guides/dedicated-vs-shared-ip-cold-email">Dedicated vs shared IP guide</a>
+        <a href="/privacy">Privacy</a>
+        <a href="/terms">Terms</a>
+        <a href="/about">About</a>
+      </nav>
+    </footer>
+  </div>
+  <a class="wa-float" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20need%20help%20with%20my%20email%20setup." target="_blank" rel="noopener" aria-label="Chat on WhatsApp">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3C9.4 3 4 8.4 4 15c0 2.4.7 4.6 2 6.6L4 29l7.6-2c2 .9 4.1 1.5 6.4 1.5 6.6 0 12-5.4 12-12S22.6 3 16 3zm0 21.8c-2 0-3.9-.5-5.5-1.5l-.4-.2-4.5 1.2 1.2-4.4-.3-.4c-1-1.7-1.6-3.7-1.6-5.7C4.9 9.4 10.4 4 16 4s11.1 5.4 11.1 11S21.6 24.8 16 24.8zm6.1-8.1c-.3-.2-1.9-1-2.2-1.1-.3-.1-.5-.2-.7.2-.2.3-.8 1.1-1 1.3-.2.2-.4.2-.7.1-.3-.2-1.4-.5-2.6-1.6-.9-.9-1.6-1.9-1.8-2.2-.2-.3 0-.5.1-.7l.5-.6c.2-.2.2-.3.3-.6.1-.2 0-.4 0-.6-.1-.2-.7-1.8-1-2.4-.3-.6-.5-.5-.7-.6h-.6c-.2 0-.6.2-.9.4-.3.3-1.1 1.1-1.1 2.7s1.2 3.1 1.3 3.4c.2.2 2.2 3.4 5.4 4.7.8.3 1.3.5 1.8.7.8.2 1.4.2 2 .1.6-.1 1.9-.8 2.2-1.5.3-.7.3-1.4.2-1.5-.1-.2-.3-.2-.7-.4z"/></svg>
+  </a>
+<div id="cookie-banner" class="cookie-banner" hidden>
+  <p>We use cookies to understand site traffic and improve OutboundAuth. <a href="/privacy">Privacy Policy</a></p>
+  <div class="cookie-actions">
+    <button id="cookie-accept" type="button">Accept</button>
+    <button id="cookie-decline" type="button">Decline</button>
+  </div>
+</div>
+<script src="/consent.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () { navigator.serviceWorker.register('/sw.js').catch(function () {}); });
+}
+</script>
+</body>
+</html>
