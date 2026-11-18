@@ -44,7 +44,7 @@ gtag('config','G-PLRGVLMB8S');
         <a href="#toolkit">Tools</a>
         <a href="#services">Pricing</a>
         <a href="#guides">Guides</a>
-        <a href="#" data-goto-tab="contact-panel">Contact</a>
+        <a href="#toolkit" data-goto-tab="contact-panel">Contact</a>
                 <a href="/about">About</a>
 <a class="cta" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20need%20help%20with%20my%20email%20authentication." target="_blank" rel="noopener">WhatsApp me</a>
       </nav>
@@ -176,7 +176,7 @@ gtag('config','G-PLRGVLMB8S');
           <button class="nav-btn" role="tab" aria-selected="false" aria-controls="subject-panel" id="subject-tab"><span class="nav-icon">Aa</span><span>Subject</span></button>
           <button class="nav-btn" role="tab" aria-selected="false" aria-controls="contact-panel" id="contact-tab"><span class="nav-icon">→</span><span>Get help</span></button>
         </div>
-        <div class="contact-card"><strong>Need the DNS fixed?</strong><p>Get hands-on email authentication help.</p><div class="contact-links"><a href="mailto:saqibnaseer077@gmail.com?subject=Email%20authentication%20help">saqibnaseer077@gmail.com?subject=Email%20authentication%20help</a><a href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20need%20help%20with%20my%20email%20authentication." target="_blank" rel="noopener">WhatsApp</a></div></div>
+        <div class="contact-card"><strong>Need the DNS fixed?</strong><p>Get hands-on email authentication help.</p><div class="contact-links"><a href="mailto:saqibnaseer077@gmail.com?subject=Email%20authentication%20help">saqibnaseer077@gmail.com</a><a href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20need%20help%20with%20my%20email%20authentication." target="_blank" rel="noopener">WhatsApp</a></div></div>
       </aside>
       <main>
         <section class="panel active" id="health-panel" role="tabpanel" aria-labelledby="health-tab">
@@ -185,7 +185,7 @@ gtag('config','G-PLRGVLMB8S');
             <div class="field"><label for="health-domain">Domain</label><input id="health-domain" inputmode="url" autocomplete="off" spellcheck="false" placeholder="example.com" /></div>
             <div class="actions"><button class="btn primary" id="health-run">Run health check</button></div>
             <div class="result" id="health-result" aria-live="polite"></div>
-            <div class="service-note"><strong>Private by design.</strong> Your browser queries public DNS directly — nothing is sent to our servers and nothing about your domain is stored.</div>
+            <div class="service-note"><strong>Private by design.</strong> Your browser queries public DNS directly — nothing is sent to our servers and nothing about your domain is stored. The Copilot chat is the one exception: what you type there is sent to our AI provider so it can answer, so keep private details out of it.</div>
           </div>
         </section>
         <section class="panel" id="spf-panel" role="tabpanel" aria-labelledby="spf-tab" hidden>
@@ -230,12 +230,33 @@ gtag('config','G-PLRGVLMB8S');
             <div class="field-row"><div class="field"><label for="help-name">Your name</label><input id="help-name" autocomplete="name" placeholder="Your name" /></div><div class="field"><label for="help-domain">Domain</label><input id="help-domain" inputmode="url" placeholder="example.com" /></div></div>
             <div class="field"><label for="help-type">What needs attention?</label><select id="help-type"><option>SPF setup or repair</option><option>DKIM setup or repair</option><option>DMARC rollout</option><option>Full deliverability review</option><option>Other email setup</option></select></div>
             <div class="field"><label for="help-details">Details</label><textarea id="help-details" placeholder="Tell me which sending platforms you use and what is going wrong."></textarea></div>
-            <div class="actions"><a href="mailto:saqibnaseer077@gmail.com?subject=Email%20authentication%20help">saqibnaseer077@gmail.com?subject=Email%20authentication%20help</a><a class="btn" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20need%20help%20with%20my%20email%20setup." target="_blank" rel="noopener">WhatsApp: +92 303 5544889</a></div>
+            <div class="actions"><a href="mailto:saqibnaseer077@gmail.com?subject=Email%20authentication%20help">saqibnaseer077@gmail.com</a><a class="btn" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20need%20help%20with%20my%20email%20setup." target="_blank" rel="noopener">WhatsApp: +92 303 5544889</a></div>
             <div class="service-note"><strong>Direct contact</strong><br><a href="mailto:saqibnaseer077@gmail.com">saqibnaseer077@gmail.com</a><br>+92 303 5544889</div>
           </div>
         </section>
       </main>
     </div>
+
+    <section class="section" id="weekly-recheck" aria-labelledby="recheck-title">
+      <div class="section-head">
+        <div class="kicker">Free weekly re-check</div>
+        <h2 id="recheck-title">Get your domain re-checked every week — free</h2>
+        <p>Records break quietly: a vendor changes an include, a record expires, a blacklist lands. Enter your domain and email, and every week we re-run the full health check and email you the result. Free, no account — stop anytime by replying to any of the emails.</p>
+      </div>
+      <style>
+        .recheck-form{max-width:640px;margin:0 auto;border:1px solid rgba(127,127,127,.35);border-radius:12px;padding:20px;display:grid;gap:14px}
+        .recheck-note{margin:0;color:var(--muted);font-size:14px}
+      </style>
+      <form class="recheck-form" action="https://formsubmit.co/saqibnaseer077@gmail.com" method="POST">
+        <div class="field"><label for="recheck-domain">Domain</label><input id="recheck-domain" name="domain" inputmode="url" autocomplete="off" spellcheck="false" placeholder="example.com" required /></div>
+        <div class="field"><label for="recheck-email">Email for your weekly result</label><input id="recheck-email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required /></div>
+        <input type="hidden" name="_subject" value="New weekly re-check signup — OutboundAuth" />
+        <input type="hidden" name="_next" value="https://outboundauth.com/#weekly-recheck" />
+        <input type="text" name="_honey" style="display:none" tabindex="-1" autocomplete="off" />
+        <div class="actions"><button class="btn primary" type="submit">Get my free weekly re-check</button></div>
+        <p class="recheck-note">One short email a week with your scores — the free taste of <a href="#services">Monthly Monitoring ($29/mo)</a>, which adds DMARC report reading, alerts within one business day and a monthly summary. Your email is never shared, and your first re-check lands within 7 days.</p>
+      </form>
+    </section>
 
     <section class="section" id="services" aria-labelledby="services-title">
       <div class="section-head">
@@ -284,6 +305,7 @@ gtag('config','G-PLRGVLMB8S');
           <a class="btn" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%27m%20interested%20in%20monthly%20deliverability%20monitoring." target="_blank" rel="noopener">Order on WhatsApp</a>
         </div>
       </div>
+      <p style="text-align:center;margin-top:18px">Ordering starts with a WhatsApp chat, not a payment page — we agree the work first. Any question or dispute about an order, message me directly and I will sort it out myself.</p>
     </section>
 
     <section class="section" id="which-service" aria-labelledby="which-service-title">
