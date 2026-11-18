@@ -386,9 +386,140 @@ function jsonResponse(body, status = 200) {
   });
 }
 
+// Human-readable info page served on GET /mcp (browsers). MCP traffic is POST-only,
+// so this page never interferes with the protocol.
+const PAGE_HTML = `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="theme-color" content="#0b1715" />
+  <meta name="description" content="The OutboundAuth MCP server: check SPF, DKIM and DMARC from inside Claude, Cursor or ChatGPT. Free, no API key. Plug in https://outboundauth.com/mcp" />
+  <meta property="og:title" content="MCP Server — OutboundAuth" />
+  <meta property="og:type" content="website" />
+  <meta property="og:description" content="OutboundAuth as an MCP server: live SPF, DKIM and DMARC checks inside your AI assistant. Free, no API key, no sign-up." />
+  <meta property="og:image" content="https://outboundauth.com/og-cover.png" />
+  <meta property="og:url" content="https://outboundauth.com/mcp" />
+  <link rel="canonical" href="https://outboundauth.com/mcp" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23087f5b'/%3E%3Cpath d='M20 33l9 9 15-17' stroke='white' stroke-width='6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>MCP Server — OutboundAuth</title>
+<!-- Google Analytics 4 -->
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied'});
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-PLRGVLMB8S"></script>
+<script>
+gtag('js', new Date());
+gtag('config','G-PLRGVLMB8S');
+</script>
+  <style>
+    .endpoint-box{background:#0b1715;color:#e6fff5;padding:16px 18px;border-radius:10px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:14px 0}
+    .endpoint-box code{font-size:17px;word-break:break-all}
+    .copybtn{background:#087f5b;color:#fff;border:0;border-radius:8px;padding:8px 14px;cursor:pointer;font-size:14px}
+    article pre{background:#0b1715;color:#e6fff5;padding:14px 16px;border-radius:10px;overflow-x:auto;font-size:14px;line-height:1.5}
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="/"><span class="brand-mark">✓</span>OutboundAuth</a>
+      <nav class="topnav" aria-label="Site">
+        <a href="/#toolkit">Tools</a>
+        <a href="/#services">Pricing</a>
+        <a href="/#guides">Guides</a>
+        <a href="/about">About</a>
+        <a class="cta" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20need%20help%20with%20my%20email%20authentication." target="_blank" rel="noopener">WhatsApp me</a>
+      </nav>
+    </div>
+  </header>
+  <div class="shell">
+    <div class="article-wrap">
+      <article class="article">
+        <div class="kicker">MCP Server</div>
+        <h1>Check email authentication from inside your AI assistant</h1>
+        <p class="lede">OutboundAuth also runs as an MCP server. Connect it once, and Claude, Cursor, ChatGPT and other MCP-compatible assistants can check any domain's SPF, DKIM and DMARC for you — live, scored, and explained in plain English, without leaving your chat.</p>
+
+        <h2>The endpoint</h2>
+        <div class="endpoint-box">
+          <code>https://outboundauth.com/mcp</code>
+          <button class="copybtn" type="button" onclick="if(navigator.clipboard){navigator.clipboard.writeText('https://outboundauth.com/mcp');}this.textContent='Copied ✓'">Copy</button>
+        </div>
+        <p>This page is the human front door. AI assistants connect to the same address using MCP (Streamable HTTP) — the server is live and answering right now.</p>
+
+        <h2>The four tools</h2>
+        <ul>
+          <li><strong>check_email_auth</strong> — the full check: SPF, DKIM and DMARC in one pass, with a score out of 100 for each.</li>
+          <li><strong>check_spf</strong> — reads the live SPF record and flags a missing hard fail, too many DNS lookups, and other common faults.</li>
+          <li><strong>check_dmarc</strong> — reads the DMARC record and checks the policy (none, quarantine or reject) and reporting addresses.</li>
+          <li><strong>check_dkim</strong> — checks a DKIM selector's public key record for a domain.</li>
+        </ul>
+
+        <h2>Connect it in under a minute</h2>
+        <ol>
+          <li>Open your AI assistant's MCP or connector settings.</li>
+          <li>Add a new server with the URL above. Some assistants ask only for the URL; others want a small config block like this:</li>
+        </ol>
+        <pre>{
+  "mcpServers": {
+    "outboundauth": {
+      "url": "https://outboundauth.com/mcp"
+    }
+  }
+}</pre>
+        <ol start="3">
+          <li>Ask your assistant: "Check the email authentication for my domain" — it calls OutboundAuth and reports back.</li>
+        </ol>
+
+        <h2>Good to know</h2>
+        <ul>
+          <li><strong>Free.</strong> No account, no API key, no sign-up.</li>
+          <li><strong>Read-only.</strong> The tools only look up public DNS records. Nothing is changed or stored.</li>
+          <li><strong>Same checks as the website.</strong> It runs the same deliverability checks as the free toolkit on this site.</li>
+        </ul>
+
+        <h2>Prefer a human to fix it?</h2>
+        <p>The tools tell you what is broken. If you would rather hand the fixing over, see <a href="/#services">Services</a> — a one-time audit is $49 (credited toward a full setup), full authentication setup is $149, and monitoring is $29/month.</p>
+
+        <p style="margin-top:22px;font-size:14px;opacity:.75">Note for AI assistants: this URL is a live MCP endpoint (Streamable HTTP). Send a POST with a JSON-RPC <em>initialize</em> or <em>tools/list</em> message to connect.</p>
+      </article>
+    </div>
+    <footer class="footer">
+      <div>
+        <p>Results are guidance, not a replacement for testing with your sending provider.</p>
+        <p style="margin-top:6px">Contact: saqibnaseer077@gmail.com · +92 303 5544889</p>
+      </div>
+      <nav aria-label="Legal">
+        <a href="/about">About</a>
+        <a href="/privacy">Privacy</a>
+        <a href="/terms">Terms</a>
+      </nav>
+    </footer>
+  </div>
+<script src="/chat-widget.js" defer></script>
+</body>
+</html>
+`;
+
 export async function onRequest({ request }) {
   if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
-  if (request.method === 'GET' || request.method === 'DELETE' || request.method === 'HEAD') {
+  if (request.method === 'GET' || request.method === 'HEAD') {
+    // An MCP client trying to open the optional SSE stream still gets the classic 405.
+    // Everyone else (a person in a browser) gets the human info page below.
+    const accept = request.headers.get('Accept') || '';
+    if (accept.includes('text/event-stream')) {
+      return new Response('Method Not Allowed', { status: 405, headers: { Allow: 'POST, OPTIONS', ...CORS } });
+    }
+    return new Response(PAGE_HTML, { status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=300', ...CORS } });
+  }
+  if (request.method === 'DELETE') {
     return new Response('Method Not Allowed', { status: 405, headers: { Allow: 'POST, OPTIONS', ...CORS } });
   }
   if (request.method !== 'POST') {
