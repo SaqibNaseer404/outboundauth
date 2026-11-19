@@ -35,7 +35,7 @@ h1 { margin:0; max-width:760px; font-family:Georgia,"Times New Roman",serif; fon
 .lede { max-width:660px; margin:24px 0 0; color:var(--muted); font-size:clamp(17px,2vw,21px); }
 .hero-cta { display:flex; flex-wrap:wrap; gap:10px; margin-top:26px; }
 .hero-note { border-top:3px solid var(--accent); padding-top:18px; } .hero-note strong { display:block; font-size:15px; margin-bottom:6px; } .hero-note p { margin:0; color:var(--muted); font-size:14px; }
-.hero-video { grid-column:1/-1; position:relative; z-index:1; margin-top:6px; max-width:880px; }
+.hero-video { grid-column:1/-1; position:relative; z-index:1; margin-top:6px; max-width:1156px; }
 .hero-video video { width:100%; height:auto; display:block; border-radius:14px; box-shadow:var(--shadow); background:#06181d; }
 .video-caption { margin:10px 0 0; font-size:14px; color:var(--muted); text-align:center; }
 .health-loading { color:var(--muted); font-size:14px; animation:health-pulse 1.2s ease-in-out infinite; }
@@ -103,7 +103,7 @@ input:focus,textarea:focus,select:focus { border-color:var(--accent); box-shadow
 
 /* ---- content sections (services, about, guides) ---- */
 .section { margin-top: 34px; }
-.section-head { max-width: 720px; margin-bottom: 20px; }
+.section-head { max-width: 940px; margin-bottom: 20px; }
 .section-head h2 { margin: 0; font-family: Georgia,"Times New Roman",serif; font-size: clamp(28px,4vw,40px); letter-spacing: -.025em; line-height: 1.08; }
 .section-head p { margin: 10px 0 0; color: var(--muted); font-size: 16px; }
 .price-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 16px; }
@@ -123,7 +123,7 @@ input:focus,textarea:focus,select:focus { border-color:var(--accent); box-shadow
 .about-card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: clamp(24px,4vw,40px); display: grid; grid-template-columns: 84px 1fr; gap: 22px; align-items: start; box-shadow: var(--shadow); }
 .avatar { width: 84px; height: 84px; border-radius: 50%; background: var(--accent-soft); color: var(--accent-2); display: grid; place-items: center; font: 800 30px/1 Georgia,serif; }
 .about-card h3 { margin: 0 0 8px; font-size: 20px; }
-.about-card p { margin: 0 0 12px; color: var(--muted); font-size: 15px; max-width: 760px; }
+.about-card p { margin: 0 0 12px; color: var(--muted); font-size: 15px; max-width: 940px; }
 .about-card p strong { color: var(--ink); }
 .guide-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 16px; }
 .guide-card { display: block; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 24px; text-decoration: none; box-shadow: var(--shadow); }
@@ -134,7 +134,7 @@ input:focus,textarea:focus,select:focus { border-color:var(--accent); box-shadow
 .guide-card .go { display: inline-block; margin-top: 14px; font-weight: 800; font-size: 14px; color: var(--accent-2); }
 
 /* ---- faq ---- */
-.faq-list { max-width: 780px; display: grid; gap: 10px; }
+.faq-list { display: grid; gap: 10px; }
 .faq-list details { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px 20px; box-shadow: var(--shadow); }
 .faq-list summary { font-weight: 700; font-size: 16px; cursor: pointer; list-style: none; }
 .faq-list summary::-webkit-details-marker { display: none; }
@@ -214,7 +214,7 @@ input:focus,textarea:focus,select:focus { border-color:var(--accent); box-shadow
 #cookie-accept { background: #087f5b; border-color: #087f5b; color: #fff; font-weight: 600; }
 
 /* Proof strip: head-to-head accuracy check */
-.proof-strip { margin-top: 34px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: clamp(24px,4vw,40px); box-shadow: var(--shadow); }
+.proof-strip { margin-top: 34px; background: var(--surface); border: 1px solid var(--line); padding-top: clamp(24px,4vw,40px); padding-bottom: clamp(24px,4vw,40px); box-shadow: var(--shadow); }
 .proof-strip .kicker { font: 700 11px/1.2 "SFMono-Regular",Consolas,monospace; letter-spacing: .11em; text-transform: uppercase; color: var(--accent-2); margin-bottom: 10px; }
 .proof-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(260px,1fr)); gap: 16px; margin: 22px 0; }
 .proof-card { background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 22px; }
