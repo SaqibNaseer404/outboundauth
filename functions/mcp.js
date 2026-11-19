@@ -436,6 +436,7 @@ gtag('config','G-PLRGVLMB8S');
         <a href="/#services">Pricing</a>
         <a href="/#guides">Guides</a>
         <a href="/about">About</a>
+        <a href="/mcp" aria-current="page">MCP</a>
         <a class="cta" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20need%20help%20with%20my%20email%20authentication." target="_blank" rel="noopener">WhatsApp me</a>
       </nav>
     </div>
@@ -500,6 +501,7 @@ gtag('config','G-PLRGVLMB8S');
         <a href="/about">About</a>
         <a href="/privacy">Privacy</a>
         <a href="/terms">Terms</a>
+        <a href="/mcp">MCP server</a>
       </nav>
     </footer>
   </div>
