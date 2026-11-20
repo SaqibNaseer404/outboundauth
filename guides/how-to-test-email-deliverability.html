@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="theme-color" content="#0b1715" />
+  <meta name="google-site-verification" content="lDGa9UqOTxwjHKAL1mI4PlN2ggJn2DVMSazM_CVMP5o" />
+  <meta name="description" content="Test before you send: seed lists, inbox placement checks, authentication audits and spam-score checks that catch deliverability problems before your campaign does." />
+  <meta property="og:title" content="How to Test Your Deliverability Before You Send — OutboundAuth" />
+  <meta property="og:description" content="Seed tests, inbox placement checks and authentication audits that catch deliverability problems before your campaign does." />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://outboundauth.com/guides/how-to-test-email-deliverability" />
+  <meta name="twitter:card" content="summary" />
+  <meta property="og:image" content="https://outboundauth.com/og-cover.png" />
+  <link rel="canonical" href="https://outboundauth.com/guides/how-to-test-email-deliverability" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23087f5b'/%3E%3Cpath d='M20 33l9 9 15-17' stroke='white' stroke-width='6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>How to Test Your Deliverability Before You Send — OutboundAuth</title>
+<!-- Google Analytics 4 -->
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied'});
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-PLRGVLMB8S"></script>
+<script>
+gtag('js', new Date());
+gtag('config','G-PLRGVLMB8S');
+</script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="/"><span class="brand-mark">✓</span>OutboundAuth</a>
+      <nav class="topnav" aria-label="Site">
+        <a href="/#toolkit">Tools</a>
+        <a href="/#services">Pricing</a>
+        <a href="/#guides">Guides</a>
+                <a href="/about">About</a>
+<a class="cta" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20need%20help%20with%20my%20email%20authentication." target="_blank" rel="noopener">WhatsApp me</a>
+      </nav>
+    </div>
+  </header>
+  <div class="shell">
+    <div class="article-wrap">
+      <a class="crumb" href="/#guides">← All guides</a>
+      <article class="article">
+        <div class="kicker">Guide · Deliverability testing</div>
+        <h1>How to test your deliverability before you send</h1>
+        <p class="lede">Sending a campaign without testing it first is like posting a letter without checking the address. A quick deliverability test shows you where your mail actually lands — inbox, spam, or nowhere at all — before your real recipients ever see it.</p>
+
+        <h2>What does a deliverability test actually check?</h2>
+        <p>Four things decide where your email lands, and a good test covers all of them:</p>
+        <ul>
+          <li><strong>Authentication</strong> — do your <span class="inline">SPF</span>, <span class="inline">DKIM</span> and <span class="inline">DMARC</span> records pass?</li>
+          <li><strong>Inbox placement</strong> — does the message reach the inbox, the spam folder, or the Promotions tab at each provider?</li>
+          <li><strong>Content</strong> — does anything in the subject line, body or links look like spam to the filters?</li>
+          <li><strong>Reputation</strong> — is your domain or sending IP on a blocklist, or carrying a poor sender reputation?</li>
+        </ul>
+        <p>Testing takes ten minutes. Fixing a campaign that already landed in spam takes days — and the damage to your reputation is hard to undo.</p>
+
+        <h2>Start with the free checks — they take two minutes</h2>
+        <p>Before any test send, run your domain through the <a href="/#toolkit">free checker tools</a>: the SPF checker, the DKIM checker and the DMARC audit. They tell you in seconds whether your records exist, are formatted correctly, and actually pass. Fix authentication first — no amount of clever subject lines can rescue mail that fails <span class="inline">SPF</span> or <span class="inline">DKIM</span>.</p>
+        <p>Also run a quick blocklist check on your sending IP. If you are listed, that is the first problem to solve, not your email copy. The <a href="/guides/cold-email-deliverability-checklist">cold email deliverability checklist</a> covers all of these checks in one place.</p>
+
+        <h2>What is a seed test?</h2>
+        <p>A seed test is the most honest check you can run. A <strong>seed list</strong> is a small set of test inboxes you control — one Gmail, one Outlook or Hotmail, one Yahoo, and an Apple Mail address if your audience uses iPhones. You send your real campaign email to the seeds first, then open each inbox and note where it landed.</p>
+        <p>The point is to see your email the way each provider sees it. Gmail and Outlook run different filters, so a message can land in the inbox at one and in spam at the other. A seed test shows you that difference before your prospects do.</p>
+
+        <h2>How do you run a seed test?</h2>
+        <ol>
+          <li><strong>Build your seed list.</strong> At least one address at Gmail, Outlook, and Yahoo. Add a second Gmail if you can — one personal, one Workspace — since they can behave differently.</li>
+          <li><strong>Send the exact campaign.</strong> Same subject line, same body, same links, same sending domain and same sending tool. A test sent from a different domain or a different tool tells you nothing about the real campaign.</li>
+          <li><strong>Wait 5–10 minutes.</strong> Filters take time to process a message. Checking instantly can give you a false result.</li>
+          <li><strong>Check every seed inbox.</strong> Inbox, spam or junk, Promotions tab, or missing entirely — write down the result for each provider.</li>
+          <li><strong>Open the message and check the headers.</strong> In Gmail, open the message, click the three dots, then "Show original". You want to see passes across the board:
+          <div class="record-box"><code>Authentication-Results: mx.google.com; spf=pass; dkim=pass; dmarc=pass</code></div>
+          If any of the three shows <span class="inline">fail</span>, fix that record before sending anything else. The <a href="/guides/email-headers-like-a-deliverability-pro">email headers guide</a> explains how to read the rest of the verdict.</li>
+        </ol>
+
+        <h2>How do you read the results?</h2>
+        <ul>
+          <li><strong>Inbox everywhere</strong> — good to send. Keep the volume ramp sensible and you are in good shape.</li>
+          <li><strong>Inbox at Gmail, spam at Outlook (or the reverse)</strong> — a provider-specific problem. Check that provider's sender tools (for example, Microsoft's SNDS for Outlook), your IP reputation, and whether your content trips that provider's filters.</li>
+          <li><strong>Spam everywhere</strong> — stop. Check authentication first, then content: link-heavy emails, image-only emails and classic spam trigger words are the usual suspects. Then check your list — stale or purchased addresses drag down engagement, and low engagement pushes mail to spam.</li>
+          <li><strong>Missing entirely</strong> — the message was probably blocked or rejected outright. Check your bounces and your blocklist status before you send again. The <a href="/guides/email-bounce-codes-explained">bounce codes guide</a> explains what each rejection means.</li>
+        </ul>
+
+        <h2>What about spam-score checkers?</h2>
+        <p>Spam-score tools scan your email and flag risky words, too many links, broken images and similar problems. They are useful for cleaning up your content — but treat the score as a hint, not a verdict. A "perfect" score can still land in spam if your domain reputation is weak, and a mediocre score can still reach the inbox from a trusted domain. Use these tools to tidy your copy, not as a pass or fail test.</p>
+
+        <h2>How often should you test?</h2>
+        <p>A one-off pass is not a permanent clean bill of health. Test again whenever something changes:</p>
+        <ul>
+          <li>Before every new campaign template or a big change to your copy.</li>
+          <li>After any change to your domain, DNS records, or sending tool.</li>
+          <li>When you move to a new sending IP, a new provider, or a new domain.</li>
+          <li>Monthly, as a routine check — reputation drifts quietly, and a monthly seed test catches it early.</li>
+        </ul>
+        <p>And test again after a bad result. Fix one thing, re-test, and confirm the fix worked before you send to real people. Guessing wastes more time than testing.</p>
+
+        <h2>What do you do if the test fails?</h2>
+        <p>Fix in this order: authentication first (<span class="inline">SPF</span>, <span class="inline">DKIM</span>, <span class="inline">DMARC</span>), then content, then list hygiene (remove stale and bouncing addresses), then volume (slow the send down and warm up longer). Most failed tests are fixed at step one. If you have worked through all four and the test still fails, the problem is usually reputation — and that is fixed by weeks of clean, consistent sending, not by a settings tweak. The <a href="/guides/why-emails-go-to-spam">why emails go to spam guide</a> walks through each cause in more detail.</p>
+
+        <div class="cta-box">
+          <h3>Want a second pair of eyes before your campaign goes out?</h3>
+          <p>I check authentication, inbox placement and sender reputation for cold emailers and businesses — and fix what the test finds.</p>
+          <a class="btn primary" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20read%20your%20deliverability%20testing%20guide%20and%20want%20help%20checking%20my%20setup." target="_blank" rel="noopener">WhatsApp Saqib</a>
+          <a class="btn" href="/#services" style="margin-left:8px">See packages</a>
+        </div>
+      </article>
+    </div>
+    <footer class="footer">
+      <div>
+        <p>Results are guidance, not a replacement for testing with your sending provider.</p>
+        <p style="margin-top:6px">Contact: saqibnaseer077@gmail.com · +92 303 5544889</p>
+      </div>
+      <nav aria-label="Legal">
+        <a href="/guides/spf-explained">SPF guide</a>
+        <a href="/guides/dmarc-guide">DMARC guide</a>
+        <a href="/guides/dkim-explained">DKIM guide</a>
+        <a href="/guides/why-emails-go-to-spam">Spam guide</a>
+        <a href="/guides/google-workspace-spf-dkim-dmarc-setup">Workspace setup guide</a>
+        <a href="/guides/microsoft-365-spf-dkim-dmarc-setup">Microsoft 365 setup guide</a>
+        <a href="/guides/email-warmup-what-actually-works">Email warmup guide</a>
+        <a href="/guides/spf-10-lookup-limit">SPF 10-lookup limit guide</a>
+        <a href="/guides/dmarc-policies-none-quarantine-reject">DMARC policies guide</a>
+        <a href="/guides/email-headers-like-a-deliverability-pro">Email headers guide</a>
+        <a href="/guides/bimi-get-your-logo-in-the-inbox">BIMI guide</a>
+        <a href="/guides/cold-email-deliverability-checklist">Checklist guide</a>
+        <a href="/guides/email-bounce-codes-explained">Bounce codes guide</a>
+        <a href="/guides/dedicated-vs-shared-ip-cold-email">Dedicated vs shared IP guide</a>
+        <a href="/guides/how-to-test-email-deliverability">Deliverability testing guide</a>
+        <a href="/privacy">Privacy</a>
+        <a href="/terms">Terms</a>
+        <a href="/about">About</a>
+      </nav>
+    </footer>
+  </div>
+  <a class="wa-float" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20need%20help%20with%20my%20email%20setup." target="_blank" rel="noopener" aria-label="Chat on WhatsApp">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3C9.4 3 4 8.4 4 15c0 2.4.7 4.6 2 6.6L4 29l7.6-2c2 .9 4.1 1.5 6.4 1.5 6.6 0 12-5.4 12-12S22.6 3 16 3zm0 21.8c-2 0-3.9-.5-5.5-1.5l-.4-.2-4.5 1.2 1.2-4.4-.3-.4c-1-1.7-1.6-3.7-1.6-5.7C4.9 9.4 10.4 4 16 4s11.1 5.4 11.1 11S21.6 24.8 16 24.8zm6.1-8.1c-.3-.2-1.9-1-2.2-1.1-.3-.1-.5-.2-.7.2-.2.3-.8 1.1-1 1.3-.2.2-.4.2-.7.1-.3-.2-1.4-.5-2.6-1.6-.9-.9-1.6-1.9-1.8-2.2-.2-.3 0-.5.1-.7l.5-.6c.2-.2.2-.3.3-.6.1-.2 0-.4 0-.6-.1-.2-.7-1.8-1-2.4-.3-.6-.5-.5-.7-.6h-.6c-.2 0-.6.2-.9.4-.3.3-1.1 1.1-1.1 2.7s1.2 3.1 1.3 3.4c.2.2 2.2 3.4 5.4 4.7.8.3 1.3.5 1.8.7.8.2 1.4.2 2 .1.6-.1 1.9-.8 2.2-1.5.3-.7.3-1.4.2-1.5-.1-.2-.3-.2-.7-.4z"/></svg>
+  </a>
+<div id="cookie-banner" class="cookie-banner" hidden>
+  <p>We use cookies to understand site traffic and improve OutboundAuth. <a href="/privacy">Privacy Policy</a></p>
+  <div class="cookie-actions">
+    <button id="cookie-accept" type="button">Accept</button>
+    <button id="cookie-decline" type="button">Decline</button>
+  </div>
+</div>
+<script src="/consent.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () { navigator.serviceWorker.register('/sw.js').catch(function () {}); });
+}
+</script>
+</body>
+</html>
