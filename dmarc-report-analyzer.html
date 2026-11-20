@@ -1,0 +1,701 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="theme-color" content="#0b1715" />
+  <meta name="google-site-verification" content="lDGa9UqOTxwjHKAL1mI4PlN2ggJn2DVMSazM_CVMP5o" />
+  <meta name="description" content="Free DMARC aggregate report analyzer: paste or drop the XML reports sent to your rua address and see, in plain English, who is sending as your domain — and who is failing. Runs entirely in your browser." />
+  <meta property="og:title" content="DMARC Report Analyzer — OutboundAuth" />
+  <meta property="og:description" content="Turn raw DMARC aggregate XML into a plain-English list of your senders: passing, forwarding, or suspicious. Nothing is uploaded." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://outboundauth.com/dmarc-report-analyzer" />
+  <meta name="twitter:card" content="summary" />
+  <meta property="og:image" content="https://outboundauth.com/og-cover.png" />
+  <link rel="canonical" href="https://outboundauth.com/dmarc-report-analyzer" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23087f5b'/%3E%3Cpath d='M20 33l9 9 15-17' stroke='white' stroke-width='6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>DMARC Report Analyzer: Who Is Sending As Your Domain? — OutboundAuth</title>
+<!-- Google Analytics 4 -->
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied'});
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-PLRGVLMB8S"></script>
+<script>
+gtag('js', new Date());
+gtag('config','G-PLRGVLMB8S');
+</script>
+  <style>
+    .drop{border:2px dashed var(--line);border-radius:12px;padding:20px;text-align:center;color:var(--muted);margin:0 0 16px;background:var(--surface-2)}
+    .drop.over{border-color:var(--accent);color:var(--ink)}
+    .drop strong{color:var(--ink)}
+    .file-note{font-size:13px;color:var(--muted);margin:8px 0 0}
+    .dmarc-table-wrap{overflow-x:auto;margin:14px 0 6px}
+    table.dmarc-table{width:100%;border-collapse:collapse;font-size:14px;min-width:640px}
+    .dmarc-table th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);padding:8px 10px;border-bottom:2px solid var(--line)}
+    .dmarc-table td{padding:11px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+    .dmarc-table .ip{font-family:"SFMono-Regular",Consolas,monospace;font-weight:700;white-space:nowrap}
+    .r-pass{color:var(--ok);font-weight:700}
+    .r-fail{color:var(--bad);font-weight:700}
+    .r-mid{color:var(--warn);font-weight:700}
+    .verdict{font-weight:750;min-width:210px}
+    .verdict small{display:block;font-weight:500;color:var(--muted);margin-top:3px;line-height:1.45}
+    .result h3{font-family:Georgia,"Times New Roman",serif;font-size:21px;letter-spacing:-.02em;margin:26px 0 4px}
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="/"><span class="brand-mark">✓</span>OutboundAuth</a>
+      <nav class="topnav" aria-label="Site">
+        <a href="/#toolkit">Tools</a>
+        <a href="/#services">Pricing</a>
+        <a href="/#guides">Guides</a>
+                <a href="/about">About</a>
+<a class="cta" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20need%20help%20with%20my%20email%20authentication." target="_blank" rel="noopener">WhatsApp me</a>
+      </nav>
+    </div>
+  </header>
+  <div class="shell">
+    <div class="article-wrap">
+      <a class="crumb" href="/#toolkit">← All tools</a>
+      <article class="article">
+        <div class="kicker">Free tool · DMARC</div>
+        <h1>DMARC report analyzer</h1>
+        <p class="lede">DMARC aggregate reports are the XML files receivers send to your <span class="inline">rua</span> address every day. They name every server that sent mail as your domain — and which of it passed or failed. Paste one below and read it in plain English: legitimate senders, forwarders, and sources you should investigate.</p>
+
+        <div class="service-note"><strong>Private by design.</strong> Your report never leaves your browser — the analysis runs entirely on this page. Nothing is uploaded, stored, or sent to any server, the same as every other OutboundAuth tool.</div>
+
+        <h2>Analyse a report</h2>
+        <div class="drop" id="dmarc-drop">
+          <strong>Drop .xml or .xml.gz report files here</strong><br />
+          or use the file picker — you can select several reports at once.<br />
+          <input type="file" id="dmarc-file" accept=".xml,.gz,.txt" multiple style="margin-top:12px;width:auto" />
+          <p class="file-note" id="dmarc-file-note"></p>
+        </div>
+        <div class="field">
+          <label for="dmarc-input">…or paste the report XML <span class="hint">(one report, or several pasted back to back)</span></label>
+          <textarea id="dmarc-input" rows="9" spellcheck="false" placeholder="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; ?&gt;&#10;&lt;feedback&gt; … &lt;/feedback&gt;"></textarea>
+        </div>
+        <div class="actions">
+          <button class="btn primary" id="dmarc-run" type="button">Analyse report</button>
+          <button class="text-btn" id="dmarc-clear" type="button">Clear</button>
+        </div>
+
+        <div class="result" id="dmarc-results" aria-live="polite"></div>
+
+        <h2>Where do these reports come from?</h2>
+        <p>If your DMARC record has a <span class="inline">rua=mailto:…</span> address, receivers like Google and Microsoft email you a zipped XML report roughly once a day for every day mail claims to be from your domain. Unzip the attachment (you'll get an <span class="inline">.xml</span> or <span class="inline">.xml.gz</span> file) and drop it above. No <span class="inline">rua</span> in your record? Add one and wait a day or two — the <a href="/guides/dmarc-guide">DMARC rollout guide</a> shows the safe sequence.</p>
+
+        <h2>How to read the results</h2>
+        <ul>
+          <li><strong>Passing — legitimate sender.</strong> SPF or DKIM passes <em>and</em> lines up with your domain. These are your real senders — keep them.</li>
+          <li><strong>Forwarding / mailing-list pattern.</strong> The mail authenticates as a different domain, so DMARC fails on alignment. Usually real mail being passed on — but it will be quarantined once you enforce, so decide if you accept it.</li>
+          <li><strong>Failing both — suspicious, investigate.</strong> Neither SPF nor DKIM passes. A service you use with broken authentication — or someone spoofing your domain. This is the list to work through before moving from <span class="inline">p=none</span> to <span class="inline">p=reject</span>.</li>
+        </ul>
+        <p>One report covers a day. Read a week or two of them before changing your policy — a sender that only mails on Mondays won't appear in a single day's file.</p>
+
+        <div class="cta-box">
+          <h3>Don't want to read these yourself?</h3>
+          <p>Monthly Monitoring includes your DMARC aggregate reports read for you — see who is sending as your domain, with alerts when something breaks.</p>
+          <a class="btn primary" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20want%20my%20DMARC%20reports%20read%20for%20me." target="_blank" rel="noopener">WhatsApp Saqib</a>
+          <a class="btn" href="/#services" style="margin-left:8px">See packages</a>
+        </div>
+      </article>
+    </div>
+    <footer class="footer">
+      <div>
+        <p>Results are guidance, not a replacement for testing with your sending provider.</p>
+        <p style="margin-top:6px">Contact: saqibnaseer077@gmail.com · +92 303 5544889</p>
+      </div>
+      <nav aria-label="Legal">
+        <a href="/guides/spf-explained">SPF guide</a>
+        <a href="/guides/why-emails-go-to-spam">Spam guide</a>
+        <a href="/guides/dkim-explained">DKIM guide</a>
+        <a href="/guides/google-workspace-spf-dkim-dmarc-setup">Workspace setup guide</a>
+        <a href="/guides/email-warmup-what-actually-works">Email warmup guide</a>
+        <a href="/guides/spf-10-lookup-limit">SPF 10-lookup limit guide</a>
+        <a href="/guides/dmarc-policies-none-quarantine-reject">DMARC policies guide</a>
+        <a href="/guides/email-headers-like-a-deliverability-pro">Email headers guide</a>
+        <a href="/guides/bimi-get-your-logo-in-the-inbox">BIMI guide</a>
+        <a href="/guides/cold-email-deliverability-checklist">Checklist guide</a>
+        <a href="/guides/microsoft-365-spf-dkim-dmarc-setup">Microsoft 365 setup guide</a>
+        <a href="/guides/email-bounce-codes-explained">Bounce codes guide</a>
+        <a href="/guides/dedicated-vs-shared-ip-cold-email">Dedicated vs shared IP guide</a>
+        <a href="/guides/how-to-test-email-deliverability">Deliverability testing guide</a>
+        <a href="/privacy">Privacy</a>
+        <a href="/terms">Terms</a>
+        <a href="/about">About</a>
+      </nav>
+    </footer>
+  </div>
+  <a class="wa-float" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20need%20help%20with%20my%20email%20setup." target="_blank" rel="noopener" aria-label="Chat on WhatsApp">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3C9.4 3 4 8.4 4 15c0 2.4.7 4.6 2 6.6L4 29l7.6-2c2 .9 4.1 1.5 6.4 1.5 6.6 0 12-5.4 12-12S22.6 3 16 3zm0 21.8c-2 0-3.9-.5-5.5-1.5l-.4-.2-4.5 1.2 1.2-4.4-.3-.4c-1-1.7-1.6-3.7-1.6-5.7C4.9 9.4 10.4 4 16 4s11.1 5.4 11.1 11S21.6 24.8 16 24.8zm6.1-8.1c-.3-.2-1.9-1-2.2-1.1-.3-.1-.5-.2-.7.2-.2.3-.8 1.1-1 1.3-.2.2-.4.2-.7.1-.3-.2-1.4-.5-2.6-1.6-.9-.9-1.6-1.9-1.8-2.2-.2-.3 0-.5.1-.7l.5-.6c.2-.2.2-.3.3-.6.1-.2 0-.4 0-.6-.1-.2-.7-1.8-1-2.4-.3-.6-.5-.5-.7-.6h-.6c-.2 0-.6.2-.9.4-.3.3-1.1 1.1-1.1 2.7s1.2 3.1 1.3 3.4c.2.2 2.2 3.4 5.4 4.7.8.3 1.3.5 1.8.7.8.2 1.4.2 2 .1.6-.1 1.9-.8 2.2-1.5.3-.7.3-1.4.2-1.5-.1-.2-.3-.2-.7-.4z"/></svg>
+  </a>
+<div id="cookie-banner" class="cookie-banner" hidden>
+  <p>We use cookies to understand site traffic and improve OutboundAuth. <a href="/privacy">Privacy Policy</a></p>
+  <div class="cookie-actions">
+    <button id="cookie-accept" type="button">Accept</button>
+    <button id="cookie-decline" type="button">Decline</button>
+  </div>
+</div>
+<script src="/consent.js"></script>
+<script>
+/* ============================================================
+   OutboundAuth — DMARC aggregate report core (shared)
+   One parsing + analysis core used by:
+     - the DMARC Report Analyzer web page (runs in the browser)
+     - the analyze_dmarc_report MCP tool
+   Environment-free: no DOM, no Node APIs, no network.
+   ============================================================ */
+
+function dmarcParseXml(xml) {
+  if (typeof xml !== 'string') throw new Error('Report content is not text.');
+  var pos = 0, len = xml.length;
+  var root = null, stack = [];
+
+  function fail(msg) { throw new Error('Could not parse the XML report: ' + msg); }
+  function current() { return stack.length ? stack[stack.length - 1] : null; }
+  function decodeEntities(s) {
+    return s.replace(/&(#x?[0-9a-fA-F]+|amp|lt|gt|quot|apos);/g, function (m, e) {
+      if (e === 'amp') return '&';
+      if (e === 'lt') return '<';
+      if (e === 'gt') return '>';
+      if (e === 'quot') return '"';
+      if (e === 'apos') return "'";
+      var code = (e.charAt(1) === 'x' || e.charAt(1) === 'X')
+        ? parseInt(e.slice(2), 16)
+        : parseInt(e.slice(1), 10);
+      return isNaN(code) ? m : String.fromCodePoint(code);
+    });
+  }
+  function addText(t) {
+    var c = current();
+    if (c) c.text += t;
+    else if (t.trim()) fail('text outside the root element');
+  }
+  function findTagEnd(s, lt) {
+    var q = null;
+    for (var j = lt + 1; j < s.length; j++) {
+      var ch = s.charAt(j);
+      if (q) { if (ch === q) q = null; }
+      else if (ch === '"' || ch === "'") q = ch;
+      else if (ch === '>') return j;
+    }
+    return -1;
+  }
+
+  while (pos < len) {
+    var lt = xml.indexOf('<', pos);
+    if (lt === -1) { addText(decodeEntities(xml.slice(pos))); pos = len; break; }
+    if (lt > pos) addText(decodeEntities(xml.slice(pos, lt)));
+
+    if (xml.indexOf('<!--', lt) === lt) {
+      var endC = xml.indexOf('-->', lt + 4);
+      if (endC === -1) fail('unterminated comment');
+      pos = endC + 3;
+    } else if (xml.indexOf('<![CDATA[', lt) === lt) {
+      var endCd = xml.indexOf(']]>', lt + 9);
+      if (endCd === -1) fail('unterminated CDATA section');
+      addText(xml.slice(lt + 9, endCd));
+      pos = endCd + 3;
+    } else if (xml.indexOf('<?', lt) === lt) {
+      var endP = xml.indexOf('?>', lt + 2);
+      if (endP === -1) fail('unterminated processing instruction');
+      pos = endP + 2;
+    } else if (xml.indexOf('<!', lt) === lt) {
+      var endD = xml.indexOf('>', lt + 2);
+      if (endD === -1) fail('unterminated declaration');
+      pos = endD + 1;
+    } else if (xml.indexOf('</', lt) === lt) {
+      var endT = xml.indexOf('>', lt + 2);
+      if (endT === -1) fail('unterminated closing tag');
+      var closeName = xml.slice(lt + 2, endT).trim();
+      var open = stack.pop();
+      if (!open) fail('unexpected closing tag </' + closeName + '>');
+      if (open.tag !== closeName) fail('mismatched tags: <' + open.tag + '> closed by </' + closeName + '>');
+      pos = endT + 1;
+    } else {
+      var gt = findTagEnd(xml, lt);
+      if (gt === -1) fail('unterminated tag');
+      var inner = xml.slice(lt + 1, gt);
+      var selfClosing = /\/\s*$/.test(inner);
+      if (selfClosing) inner = inner.replace(/\/\s*$/, '');
+      var nameMatch = inner.match(/^\s*([^\s/>]+)/);
+      if (!nameMatch) fail('malformed tag');
+      var el = { tag: nameMatch[1], attrs: {}, children: [], text: '' };
+      var attrRe = /([^\s=/>]+)\s*=\s*("([^"]*)"|'([^']*)')/g, am;
+      var attrSrc = inner.slice(nameMatch[0].length);
+      while ((am = attrRe.exec(attrSrc)) !== null) {
+        el.attrs[am[1]] = decodeEntities(am[3] !== undefined ? am[3] : am[4]);
+      }
+      var parent = current();
+      if (parent) parent.children.push(el);
+      else if (!root) root = el;
+      else fail('multiple root elements');
+      if (!selfClosing) stack.push(el);
+      pos = gt + 1;
+    }
+  }
+  if (stack.length) fail('unclosed tag <' + stack[stack.length - 1].tag + '>');
+  if (!root) fail('no XML element found');
+  return root;
+}
+
+function dmarcLocalName(tag) {
+  var i = tag.indexOf(':');
+  return i === -1 ? tag : tag.slice(i + 1);
+}
+function dmarcChildren(el, tag) {
+  if (!el) return [];
+  return el.children.filter(function (c) { return dmarcLocalName(c.tag) === tag; });
+}
+function dmarcChild(el, tag) {
+  var c = dmarcChildren(el, tag);
+  return c.length ? c[0] : null;
+}
+function dmarcText(el, tag) {
+  var c = dmarcChild(el, tag);
+  return c ? c.text.trim() : '';
+}
+function dmarcNum(s) {
+  var n = parseInt(s, 10);
+  return isNaN(n) || n < 0 ? 0 : n;
+}
+
+function dmarcReadReport(root) {
+  var meta = dmarcChild(root, 'report_metadata');
+  var range = dmarcChild(meta, 'date_range');
+  var pol = dmarcChild(root, 'policy_published');
+  var report = {
+    orgName: dmarcText(meta, 'org_name'),
+    email: dmarcText(meta, 'email'),
+    reportId: dmarcText(meta, 'report_id'),
+    dateBegin: range ? dmarcNum(dmarcText(range, 'begin')) || null : null,
+    dateEnd: range ? dmarcNum(dmarcText(range, 'end')) || null : null,
+    domain: dmarcText(pol, 'domain'),
+    adkim: dmarcText(pol, 'adkim'),
+    aspf: dmarcText(pol, 'aspf'),
+    policy: dmarcText(pol, 'p'),
+    sp: dmarcText(pol, 'sp'),
+    pct: dmarcText(pol, 'pct'),
+    records: [],
+  };
+  dmarcChildren(root, 'record').forEach(function (rec) {
+    var row = dmarcChild(rec, 'row');
+    var evald = dmarcChild(row, 'policy_evaluated');
+    var ids = dmarcChild(rec, 'identifiers');
+    var auth = dmarcChild(rec, 'auth_results');
+    var r = {
+      sourceIp: dmarcText(row, 'source_ip'),
+      count: dmarcNum(dmarcText(row, 'count')),
+      disposition: dmarcText(evald, 'disposition'),
+      evalDkim: dmarcText(evald, 'dkim'),
+      evalSpf: dmarcText(evald, 'spf'),
+      reasons: dmarcChildren(evald, 'reason').map(function (x) { return dmarcText(x, 'type'); }).filter(Boolean),
+      headerFrom: dmarcText(ids, 'header_from'),
+      envelopeFrom: dmarcText(ids, 'envelope_from'),
+      authDkim: dmarcChildren(auth, 'dkim').map(function (d) {
+        return { domain: dmarcText(d, 'domain'), selector: dmarcText(d, 'selector'), result: dmarcText(d, 'result') };
+      }),
+      authSpf: dmarcChildren(auth, 'spf').map(function (s) {
+        return { domain: dmarcText(s, 'domain'), scope: dmarcText(s, 'scope'), result: dmarcText(s, 'result') };
+      }),
+    };
+    report.records.push(r);
+  });
+  return report;
+}
+
+/* Split pasted content into individual <feedback> documents and parse each.
+   Throws a plain-English Error when nothing usable is found. */
+function dmarcParseReports(input) {
+  var text = String(input == null ? '' : input);
+  if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+  var lower = text.toLowerCase();
+  var segments = [], idx = 0;
+  while (true) {
+    var start = lower.indexOf('<feedback', idx);
+    if (start === -1) break;
+    var endTag = lower.indexOf('</feedback>', start);
+    if (endTag === -1) break;
+    segments.push(text.slice(start, endTag + '</feedback>'.length));
+    idx = endTag + '</feedback>'.length;
+  }
+  if (!segments.length) {
+    throw new Error('No DMARC aggregate report found in this content. DMARC reports are XML files with a <feedback> root element — check you pasted or picked the aggregate report (the .xml or .xml.gz files sent to your rua address), not a forensic report or a screenshot of one.');
+  }
+  var reports = [], errors = [];
+  segments.forEach(function (seg, i) {
+    try {
+      var root = dmarcParseXml(seg);
+      if (dmarcLocalName(root.tag) !== 'feedback') throw new Error('root element is <' + root.tag + '>, not <feedback>');
+      reports.push(dmarcReadReport(root));
+    } catch (e) {
+      errors.push('Report ' + (i + 1) + ': ' + e.message);
+    }
+  });
+  if (!reports.length) {
+    throw new Error('The report could not be read. ' + errors.join(' '));
+  }
+  return { reports: reports, errors: errors };
+}
+
+function dmarcAligned(domain, headerFrom) {
+  if (!domain || !headerFrom) return false;
+  var d = String(domain).toLowerCase(), h = String(headerFrom).toLowerCase();
+  return d === h || h.slice(-(d.length + 1)) === '.' + d || d.slice(-(h.length + 1)) === '.' + h;
+}
+
+/* A record passes DMARC when the *evaluated* (aligned) SPF or DKIM verdict
+   is pass. Falls back to aligned auth_results when evaluation is absent. */
+function dmarcRecordPasses(rec) {
+  if (rec.evalDkim === 'pass' || rec.evalSpf === 'pass') return true;
+  if (rec.evalDkim || rec.evalSpf) return false;
+  return rec.authSpf.some(function (a) { return a.result === 'pass' && dmarcAligned(a.domain, rec.headerFrom); }) ||
+         rec.authDkim.some(function (a) { return a.result === 'pass' && dmarcAligned(a.domain, rec.headerFrom); });
+}
+
+function dmarcFmtNum(n) {
+  return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+var DMARC_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+function dmarcFmtDate(epochSec) {
+  if (!epochSec) return '';
+  var d = new Date(epochSec * 1000);
+  return d.getUTCDate() + ' ' + DMARC_MONTHS[d.getUTCMonth()] + ' ' + d.getUTCFullYear();
+}
+function dmarcJoinSet(obj) {
+  var keys = Object.keys(obj);
+  return keys.length ? keys.join(' / ') : '—';
+}
+
+function dmarcFinaliseSource(s) {
+  var status = s.failCount === 0 ? 'pass' : (s.passCount === 0 ? 'fail' : 'mixed');
+  var spf = dmarcJoinSet(s.evalSpf), dkim = dmarcJoinSet(s.evalDkim), disp = dmarcJoinSet(s.dispositions);
+  var unaligned = Object.keys(s.authPassDomains);
+  var fwdReason = s.reasonTypes.some(function (t) {
+    return t === 'forwarded' || t === 'mailing_list' || t === 'trusted_forwarder';
+  });
+  var label, detail;
+  if (status === 'pass') {
+    label = 'Passing — legitimate sender';
+    detail = 'SPF or DKIM passes and lines up with your domain, so DMARC passes for this source.';
+  } else if (status === 'mixed') {
+    label = 'Mostly passing — some mail fails';
+    detail = dmarcFmtNum(s.failCount) + ' of ' + dmarcFmtNum(s.count) + ' messages from this source fail DMARC. Usually one sending stream (a different tool or subdomain) is missing SPF or DKIM alignment — ask the provider to fix it.';
+  } else if (unaligned.length || fwdReason) {
+    label = 'Forwarding / mailing-list pattern';
+    detail = 'This source\'s mail authenticates as ' + (unaligned.length ? unaligned.join(', ') : 'another domain') + ', not as your domain, so DMARC fails on alignment. Typical of forwarders and mailing lists that pass mail on — the mail is usually real, but it will keep failing until the forwarder preserves DKIM or you accept the risk.';
+  } else if (disp.indexOf('reject') !== -1 || disp.indexOf('quarantine') !== -1) {
+    label = 'Failing both — suspicious, investigate';
+    detail = 'SPF and DKIM both fail and your policy already blocks or quarantines this mail. If this is a service you use, its authentication is broken — fix it today. If you don\'t recognise the source, this is what spoofing looks like, and your policy is doing its job.';
+  } else {
+    label = 'Failing both — suspicious, investigate';
+    detail = 'SPF and DKIM both fail, and because the published policy is p=none these messages were still delivered. If you recognise this sender, fix its setup. If you don\'t, treat it as a spoofing attempt — this pattern is exactly what moving to p=quarantine or p=reject protects against.';
+  }
+  return {
+    ip: s.ip, count: s.count, passCount: s.passCount, failCount: s.failCount,
+    spf: spf, dkim: dkim, disposition: disp,
+    headerFroms: Object.keys(s.headerFroms),
+    status: status, label: label, detail: detail,
+  };
+}
+
+function dmarcAnalyse(parsed) {
+  var map = {}, order = [];
+  var totalMessages = 0, passMessages = 0, totalRecords = 0;
+  var dateBegin = null, dateEnd = null;
+  var orgs = {}, domains = {}, policies = {};
+
+  parsed.reports.forEach(function (rep) {
+    if (rep.orgName) orgs[rep.orgName] = true;
+    if (rep.domain) domains[rep.domain] = true;
+    if (rep.policy) policies[rep.policy] = true;
+    if (rep.dateBegin && (dateBegin === null || rep.dateBegin < dateBegin)) dateBegin = rep.dateBegin;
+    if (rep.dateEnd && (dateEnd === null || rep.dateEnd > dateEnd)) dateEnd = rep.dateEnd;
+    rep.records.forEach(function (rec) {
+      totalRecords += 1;
+      totalMessages += rec.count;
+      var key = rec.sourceIp || '(unknown source)';
+      if (!map[key]) {
+        map[key] = {
+          ip: key, count: 0, passCount: 0, failCount: 0,
+          dispositions: {}, evalSpf: {}, evalDkim: {}, headerFroms: {},
+          authPassDomains: {}, reasonTypes: [],
+        };
+        order.push(key);
+      }
+      var s = map[key];
+      s.count += rec.count;
+      if (dmarcRecordPasses(rec)) { s.passCount += rec.count; passMessages += rec.count; }
+      else s.failCount += rec.count;
+      if (rec.disposition) s.dispositions[rec.disposition] = true;
+      if (rec.evalSpf) s.evalSpf[rec.evalSpf] = true;
+      if (rec.evalDkim) s.evalDkim[rec.evalDkim] = true;
+      if (rec.headerFrom) s.headerFroms[rec.headerFrom] = true;
+      rec.reasons.forEach(function (t) { if (s.reasonTypes.indexOf(t) === -1) s.reasonTypes.push(t); });
+      rec.authSpf.concat(rec.authDkim).forEach(function (a) {
+        if (a.result === 'pass' && a.domain && !dmarcAligned(a.domain, rec.headerFrom)) s.authPassDomains[a.domain] = true;
+      });
+    });
+  });
+
+  var sources = order.map(function (k) { return dmarcFinaliseSource(map[k]); });
+  sources.sort(function (a, b) { return b.count - a.count; });
+
+  var failMessages = totalMessages - passMessages;
+  var problems = [];
+  var enforced = sources.filter(function (s) {
+    return s.status === 'fail' && s.label.indexOf('suspicious') !== -1 &&
+      (s.disposition.indexOf('reject') !== -1 || s.disposition.indexOf('quarantine') !== -1);
+  });
+  var unenforced = sources.filter(function (s) {
+    return s.status === 'fail' && s.label.indexOf('suspicious') !== -1 && enforced.indexOf(s) === -1;
+  });
+  var forwarding = sources.filter(function (s) { return s.label.indexOf('Forwarding') === 0; });
+  var mixed = sources.filter(function (s) { return s.status === 'mixed'; });
+
+  enforced.forEach(function (s) {
+    problems.push({ level: 'bad', title: s.ip + ' is failing both checks and being blocked (' + dmarcFmtNum(s.failCount) + ' messages)',
+      detail: 'If this is a service you send through, its SPF/DKIM alignment is broken — fix it before real mail is lost. If you don\'t recognise it, it is likely spoofing and your policy is working.' });
+  });
+  unenforced.forEach(function (s) {
+    problems.push({ level: 'bad', title: s.ip + ' is failing both checks but was still delivered (' + dmarcFmtNum(s.failCount) + ' messages)',
+      detail: 'Your published policy is p=none, so receivers took no action. Recognise the sender? Get its authentication fixed. Don\'t recognise it? Treat it as spoofing — and as a reason to enforce.' });
+  });
+  forwarding.forEach(function (s) {
+    problems.push({ level: 'warn', title: s.ip + ' looks like a forwarder or mailing list (' + dmarcFmtNum(s.failCount) + ' messages)',
+      detail: 'Its mail authenticates as another domain, so DMARC fails on alignment. Usually legitimate — but decide whether you accept this source failing, because strict enforcement will quarantine its mail.' });
+  });
+  mixed.forEach(function (s) {
+    problems.push({ level: 'warn', title: s.ip + ' passes only some of the time (' + dmarcFmtNum(s.failCount) + ' failing messages)',
+      detail: 'One of this sender\'s streams is missing alignment. Ask the provider which of their systems sends without a passing, aligned SPF or DKIM result.' });
+  });
+
+  var policyList = Object.keys(policies);
+  if (totalMessages > 0 && failMessages === 0 && sources.length) {
+    if (policyList.indexOf('reject') !== -1) {
+      problems.push({ level: 'ok', title: 'Healthy: every source passes and the policy is p=reject',
+        detail: 'This is the end state you want. Keep watching reports weekly — new tools and vendors show up as new sources first.' });
+    } else {
+      problems.push({ level: 'ok', title: 'Every source passes — you can strengthen the policy',
+        detail: 'If 1–2 weeks of reports all look like this, move from ' + (policyList.join(' / ') || 'p=none') + ' towards p=quarantine, then p=reject, so failing mail is actually stopped.' });
+    }
+  } else if (policyList.indexOf('none') !== -1) {
+    problems.push({ level: 'warn', title: 'Published policy is p=none (monitor only)',
+      detail: 'Nothing failing is being stopped yet — that is correct while you clean up. Fix the failing legitimate senders above first, then step up to p=quarantine (pct=50 is a gentle ramp), then p=reject.' });
+  } else if (policyList.indexOf('quarantine') !== -1 && failMessages > 0) {
+    problems.push({ level: 'warn', title: 'Policy is p=quarantine — finish the job',
+      detail: 'Once the failing sources above are fixed or accepted, move to p=reject so spoofed mail is refused outright instead of landing in spam.' });
+  }
+  if (!problems.length) {
+    problems.push({ level: 'warn', title: 'No records found in this report',
+      detail: 'The report parsed but contained no <record> rows — it may cover a period with no mail, or the file may be truncated.' });
+  }
+
+  return {
+    reportCount: parsed.reports.length,
+    parseErrors: parsed.errors,
+    orgs: Object.keys(orgs),
+    domains: Object.keys(domains),
+    policies: policyList,
+    dateBegin: dateBegin,
+    dateEnd: dateEnd,
+    totalMessages: totalMessages,
+    passMessages: passMessages,
+    failMessages: failMessages,
+    passPct: totalMessages ? Math.round((passMessages / totalMessages) * 100) : 0,
+    totalRecords: totalRecords,
+    sources: sources,
+    problems: problems,
+  };
+}
+
+/* Plain-text rendering — the MCP tool returns exactly this. */
+function dmarcRenderText(a) {
+  var lines = ['DMARC report analysis (by OutboundAuth — https://outboundauth.com)', ''];
+  var who = (a.orgs.join(', ') || 'Unknown reporter') + ' → ' + (a.domains.join(', ') || 'unknown domain');
+  var when = a.dateBegin ? ' · ' + dmarcFmtDate(a.dateBegin) + (a.dateEnd && a.dateEnd !== a.dateBegin ? ' to ' + dmarcFmtDate(a.dateEnd) : '') : '';
+  lines.push('Report: ' + who + when + (a.reportCount > 1 ? ' · ' + a.reportCount + ' reports combined' : ''));
+  lines.push('Published policy: ' + (a.policies.length ? 'p=' + a.policies.join(', p=') : 'not stated'));
+  lines.push('Messages: ' + dmarcFmtNum(a.totalMessages) + ' total · ' + dmarcFmtNum(a.passMessages) + ' passing (' + a.passPct + '%) · ' + dmarcFmtNum(a.failMessages) + ' failing');
+  lines.push('');
+  lines.push('Sources, biggest risk first:');
+  var risk = a.sources.slice().sort(function (x, y) {
+    var rank = function (s) { return s.status === 'fail' ? 0 : s.status === 'mixed' ? 1 : 2; };
+    return rank(x) - rank(y) || y.count - x.count;
+  });
+  if (!risk.length) lines.push('  (no sources)');
+  risk.forEach(function (s) {
+    lines.push('- ' + s.ip + ' — ' + dmarcFmtNum(s.count) + ' messages · SPF ' + s.spf + ' · DKIM ' + s.dkim + ' · disposition ' + s.disposition);
+    lines.push('  ' + s.label + '. ' + s.detail);
+  });
+  lines.push('');
+  lines.push('Top problems, in fix order:');
+  a.problems.forEach(function (p, i) {
+    var mark = p.level === 'bad' ? '[FIX FIRST]' : p.level === 'warn' ? '[CHECK]' : '[OK]';
+    lines.push((i + 1) + '. ' + mark + ' ' + p.title + ' — ' + p.detail);
+  });
+  if (a.parseErrors.length) {
+    lines.push('');
+    lines.push('Note: ' + a.parseErrors.join(' '));
+  }
+  lines.push('');
+  lines.push('How DMARC reports drive a safe rollout: https://outboundauth.com/guides/dmarc-guide');
+  return lines.join('\n');
+}
+
+/* Node test hook — inert in browsers and in the MCP worker. */
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    dmarcParseXml: dmarcParseXml,
+    dmarcParseReports: dmarcParseReports,
+    dmarcAnalyse: dmarcAnalyse,
+    dmarcRenderText: dmarcRenderText,
+  };
+}
+
+</script>
+<script>
+(function () {
+  var input = document.getElementById('dmarc-input');
+  var fileInput = document.getElementById('dmarc-file');
+  var fileNote = document.getElementById('dmarc-file-note');
+  var drop = document.getElementById('dmarc-drop');
+  var results = document.getElementById('dmarc-results');
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function resultClass(v) {
+    if (v === 'pass') return 'r-pass';
+    if (v.indexOf('fail') !== -1) return 'r-fail';
+    if (v.indexOf('pass') !== -1) return 'r-mid';
+    return '';
+  }
+  function showError(msg) {
+    results.className = 'result visible';
+    results.innerHTML = '<ul class="findings"><li class="finding bad"><span class="mark">✗</span><div><strong>Could not read that report</strong><span>' + esc(msg) + '</span></div></li></ul>';
+    results.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+  function render(a) {
+    var html = '';
+    html += '<div class="mini-grid">'
+      + '<div class="mini-stat"><strong>' + esc(a.orgs.join(', ') || '—') + '</strong><span>Reporting organisation</span></div>'
+      + '<div class="mini-stat"><strong>' + esc(a.domains.join(', ') || '—') + '</strong><span>Domain</span></div>'
+      + '<div class="mini-stat"><strong>' + (a.policies.length ? 'p=' + esc(a.policies.join(', p=')) : '—') + '</strong><span>Published policy</span></div>'
+      + '<div class="mini-stat"><strong>' + dmarcFmtNum(a.totalMessages) + '</strong><span>Total messages</span></div>'
+      + '<div class="mini-stat"><strong>' + a.passPct + '%</strong><span>Passing DMARC</span></div>'
+      + '<div class="mini-stat"><strong>' + a.sources.length + '</strong><span>Sending sources</span></div>'
+      + '</div>';
+    var meta = [];
+    if (a.dateBegin) meta.push('Covers ' + dmarcFmtDate(a.dateBegin) + (a.dateEnd && a.dateEnd !== a.dateBegin ? ' to ' + dmarcFmtDate(a.dateEnd) : ''));
+    if (a.reportCount > 1) meta.push(a.reportCount + ' reports combined');
+    if (meta.length) html += '<p class="file-note">' + esc(meta.join(' · ')) + '</p>';
+    a.parseErrors.forEach(function (e) {
+      html += '<ul class="findings" style="margin-top:12px"><li class="finding warn"><span class="mark">!</span><div><strong>One part could not be read</strong><span>' + esc(e) + '</span></div></li></ul>';
+    });
+    html += '<h3>Who sent as your domain</h3>';
+    html += '<div class="dmarc-table-wrap"><table class="dmarc-table"><thead><tr>'
+      + '<th>Source IP</th><th>Messages</th><th>SPF</th><th>DKIM</th><th>Disposition</th><th>Verdict</th>'
+      + '</tr></thead><tbody>';
+    a.sources.forEach(function (s) {
+      html += '<tr>'
+        + '<td class="ip">' + esc(s.ip) + '</td>'
+        + '<td>' + dmarcFmtNum(s.count) + '</td>'
+        + '<td class="' + resultClass(s.spf) + '">' + esc(s.spf) + '</td>'
+        + '<td class="' + resultClass(s.dkim) + '">' + esc(s.dkim) + '</td>'
+        + '<td>' + esc(s.disposition) + '</td>'
+        + '<td class="verdict">' + esc(s.label) + '<small>' + esc(s.detail) + '</small></td>'
+        + '</tr>';
+    });
+    html += '</tbody></table></div>';
+    html += '<h3>Top problems, in fix order</h3><ul class="findings">';
+    a.problems.forEach(function (p) {
+      var mark = p.level === 'bad' ? '✗' : p.level === 'warn' ? '!' : '✓';
+      html += '<li class="finding ' + (p.level === 'bad' ? 'bad' : p.level === 'warn' ? 'warn' : 'ok') + '"><span class="mark">' + mark + '</span><div><strong>' + esc(p.title) + '</strong><span>' + esc(p.detail) + '</span></div></li>';
+    });
+    html += '</ul>';
+    results.className = 'result visible';
+    results.innerHTML = html;
+    results.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+  function analyse() {
+    var text = input.value;
+    if (!text.trim()) { showError('Paste a report or pick a report file first — the box above is empty.'); return; }
+    try {
+      render(dmarcAnalyse(dmarcParseReports(text)));
+    } catch (e) {
+      showError(e && e.message ? e.message : String(e));
+    }
+  }
+  function readFileText(file) {
+    if (/\.gz$/i.test(file.name)) {
+      if (typeof DecompressionStream === 'undefined') {
+        return Promise.reject(new Error(file.name + ': this browser cannot open .gz files here. Unzip it first (you will get an .xml file), then pick that instead.'));
+      }
+      return file.arrayBuffer().then(function (buf) {
+        var stream = new Blob([buf]).stream().pipeThrough(new DecompressionStream('gzip'));
+        return new Response(stream).text();
+      });
+    }
+    return file.text();
+  }
+  function addFiles(files) {
+    var names = [];
+    var chain = Promise.resolve();
+    Array.prototype.forEach.call(files, function (file) {
+      chain = chain.then(function () {
+        return readFileText(file).then(function (text) {
+          input.value = (input.value ? input.value.replace(/\s+$/, '') + '\n' : '') + text;
+          names.push(file.name);
+          fileNote.textContent = 'Added: ' + names.join(', ') + ' — now press “Analyse report”.';
+        });
+      });
+    });
+    chain.catch(function (e) {
+      fileNote.textContent = '';
+      showError(e && e.message ? e.message : String(e));
+    });
+  }
+  fileInput.addEventListener('change', function () {
+    if (fileInput.files && fileInput.files.length) addFiles(fileInput.files);
+    fileInput.value = '';
+  });
+  ['dragenter', 'dragover'].forEach(function (ev) {
+    drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.add('over'); });
+  });
+  ['dragleave', 'drop'].forEach(function (ev) {
+    drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.remove('over'); });
+  });
+  drop.addEventListener('drop', function (e) {
+    var files = e.dataTransfer && e.dataTransfer.files;
+    if (files && files.length) addFiles(files);
+  });
+  document.getElementById('dmarc-run').addEventListener('click', analyse);
+  document.getElementById('dmarc-clear').addEventListener('click', function () {
+    input.value = '';
+    fileNote.textContent = '';
+    results.className = 'result';
+    results.innerHTML = '';
+    input.focus();
+  });
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () { navigator.serviceWorker.register('/sw.js').catch(function () {}); });
+}
+</script>
+</body>
+</html>
