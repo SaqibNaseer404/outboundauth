@@ -3,9 +3,19 @@
 // as MCP tools any MCP-compatible assistant (Claude, Cursor, ChatGPT…) can call.
 // Deploys as a Cloudflare Pages Function: functions/mcp.js  ->  https://outboundauth.com/mcp
 
-const SERVER = { name: 'outboundauth', version: '1.0.0', title: 'OutboundAuth Deliverability' };
+const SERVER = { name: 'outboundauth', version: '1.1.0', title: 'OutboundAuth Deliverability' };
 const PROTOCOLS = ['2025-06-18', '2025-03-26', '2024-11-05'];
 const COMMON_DKIM_SELECTORS = ['google', 'selector1', 'selector2', 's1', 's2', 'k1', 'k2', 'mail', 'dkim', 'default'];
+const HEALTH_RBLS = ['zen.spamhaus.org', 'bl.spamcop.net', 'psbl.surriel.com', 'dnsbl-1.uceprotect.net', 'bl.mailspike.net', 'dnsbl.dronebl.org', 'ubl.unsubscore.com'];
+const RBL_NAMES = {
+  'zen.spamhaus.org': 'Spamhaus ZEN',
+  'bl.spamcop.net': 'SpamCop',
+  'psbl.surriel.com': 'PSBL',
+  'dnsbl-1.uceprotect.net': 'UCEPROTECT L1',
+  'bl.mailspike.net': 'Mailspike',
+  'dnsbl.dronebl.org': 'DroneBL',
+  'ubl.unsubscore.com': 'UBL (Unsubscore)',
+};
 
 /* ---------------- domain + DNS helpers ---------------- */
 
@@ -210,6 +220,384 @@ function renderSection(title, result) {
   return lines.join('\n');
 }
 
+/* ---------------- Stage 1 helpers: MX parsing, blacklists, bounce + header analysis ---------------- */
+
+function parseMx(answers) {
+  const hosts = [];
+  (answers || []).forEach(a => {
+    if (a.t !== 15) return;
+    const m = a.d.match(/^\s*(\d+)\s+(\S+)\.?$/);
+    if (m) hosts.push({ pri: Number(m[1]), host: m[2].replace(/\.$/, '') });
+  });
+  hosts.sort((a, b) => a.pri - b.pri);
+  return hosts;
+}
+
+async function resolveIPv4(host) {
+  const res = await doh(host, 'A');
+  if (!res.ok) return null;
+  const hit = (res.answers || []).filter(a => a.t === 1 && /^\d+\.\d+\.\d+\.\d+$/.test(a.d))[0];
+  return hit ? hit.d : null;
+}
+
+async function resolveAny(host) {
+  const [a, aaaa] = await Promise.all([doh(host, 'A'), doh(host, 'AAAA')]);
+  const ips = [];
+  if (a.ok) (a.answers || []).filter(x => x.t === 1).forEach(x => ips.push(x.d));
+  if (aaaa.ok) (aaaa.answers || []).filter(x => x.t === 28).forEach(x => ips.push(x.d));
+  return { ok: a.ok || aaaa.ok, ips };
+}
+
+// The IPs worth reputation-checking for a domain: its mail servers first
+// (that is where its mail actually comes from), then the domain's own address.
+async function ipsForDomain(domain, mxHosts) {
+  const ips = [];
+  for (const h of (mxHosts || [])) {
+    const ip = await resolveIPv4(h.host);
+    if (ip && !ips.includes(ip)) ips.push(ip);
+    if (ips.length >= 5) break;
+  }
+  if (!ips.length) {
+    const ip = await resolveIPv4(domain);
+    if (ip) ips.push(ip);
+  }
+  return ips;
+}
+
+// Same 7 DNSBLs and the same listing rule as the website's health check:
+// a 127.x answer (other than the 127.255.255.254 error sentinel) means listed.
+async function checkIpBlacklists(ip) {
+  const rev = ip.split('.').reverse().join('.');
+  const results = await Promise.all(HEALTH_RBLS.map(async z => ({ zone: z, res: await doh(rev + '.' + z, 'A') })));
+  const checked = [];
+  const listed = [];
+  results.forEach(({ zone, res }) => {
+    if (!res.ok) return;
+    checked.push(zone);
+    const real = (res.answers || []).filter(a => a.t === 1 && /^127\./.test(a.d) && a.d !== '127.255.255.254');
+    if (real.length) listed.push({ zone, codes: real.map(a => a.d) });
+  });
+  return { checked, listed };
+}
+
+async function evalBlacklist(domain, mxHosts) {
+  const findings = [];
+  const ips = await ipsForDomain(domain, mxHosts);
+  if (!ips.length) {
+    findings.push(f('warn', 'No IP address found to check', 'Neither the domain nor its mail servers have a public IPv4 address to test against the lists.'));
+    return { points: null, findings, ips };
+  }
+  findings.push(f('ok', 'Checking ' + ips.length + ' IP' + (ips.length > 1 ? 's' : ''), ips.join(', ') + ' — resolved from the domain and its mail servers.'));
+  let anyChecked = false;
+  let anyListed = false;
+  for (const ip of ips) {
+    const r = await checkIpBlacklists(ip);
+    if (r.checked.length) anyChecked = true;
+    if (r.listed.length) {
+      anyListed = true;
+      r.listed.forEach(l => findings.push(f('bad', ip + ' is listed on ' + (RBL_NAMES[l.zone] || l.zone),
+        l.zone + ' returned ' + l.codes.join(', ') + '. A listing drags mail into spam until it is removed — fix the cause first, then request delisting from the list operator.')));
+    } else if (r.checked.length) {
+      findings.push(f('ok', ip + ' is clean', 'Not listed on ' + r.checked.map(z => RBL_NAMES[z] || z).join(', ') + '.'));
+    }
+  }
+  if (!anyChecked) {
+    findings.push(f('warn', 'Blacklist check unavailable', 'The reputation lists could not be reached — try again later.'));
+    return { points: null, findings, ips };
+  }
+  return { points: anyListed ? 20 : 100, findings, ips };
+}
+
+/* ---------------- MX health ---------------- */
+
+function guessProvider(hosts) {
+  const all = hosts.map(h => h.host.toLowerCase()).join(' ');
+  if (/aspmx|gmail-smtp-in|googlemail\.com/.test(all)) return 'Google Workspace';
+  if (/mail\.protection\.outlook\.com/.test(all)) return 'Microsoft 365';
+  if (/zoho/.test(all)) return 'Zoho Mail';
+  if (/proton/.test(all)) return 'Proton Mail';
+  if (/messagingengine\.com|fastmail/.test(all)) return 'Fastmail';
+  if (/yahoodns|yahoo/.test(all)) return 'Yahoo Mail';
+  if (/amazonaws\.com/.test(all)) return 'Amazon (SES / WorkMail)';
+  if (/pphosted\.com|proofpoint/.test(all)) return 'Proofpoint';
+  if (/mimecast/.test(all)) return 'Mimecast';
+  if (/iphmx\.com/.test(all)) return 'Cisco IronPort';
+  return null;
+}
+
+async function evalMxHealth(domain, mxAnswers) {
+  const findings = [];
+  let points = 100;
+  const hosts = parseMx(mxAnswers);
+  if (!hosts.length) {
+    findings.push(f('warn', 'No MX records found', 'This domain cannot receive email. Sending is still possible without MX records, but replies and bounces have nowhere to land.'));
+    return { points: 70, findings, hosts };
+  }
+  findings.push(f('ok', hosts.length + ' mail server' + (hosts.length > 1 ? 's' : '') + ' found',
+    hosts.map(h => h.host + ' (priority ' + h.pri + ')').join(', ')));
+  const provider = guessProvider(hosts);
+  if (provider) findings.push(f('ok', 'Mail provider looks like ' + provider, 'Recognised from the MX hostnames.'));
+  const pris = hosts.map(h => h.pri);
+  if (new Set(pris).size !== pris.length) {
+    findings.push(f('warn', 'Duplicate MX priorities', 'Two or more servers share a priority — valid, but distinct priorities make the failover order clearer.'));
+    points -= 5;
+  }
+  if (hosts.length === 1) {
+    findings.push(f('warn', 'Only one mail server', 'If it goes down, incoming mail queues or bounces — a second MX record adds resilience.'));
+    points -= 5;
+  }
+  for (const h of hosts) {
+    if (h.host === 'localhost' || /^127\./.test(h.host)) {
+      findings.push(f('bad', 'MX points at localhost', h.host + ' can never receive mail from the internet.'));
+      points -= 40;
+      continue;
+    }
+    if (h.host === domain) {
+      findings.push(f('warn', 'MX points at the domain itself', 'Fine if the root host really runs a mail server — otherwise point MX at a dedicated mail hostname.'));
+      points -= 5;
+    }
+    const r = await resolveAny(h.host);
+    if (!r.ok) {
+      findings.push(f('warn', 'Could not verify ' + h.host, 'The DNS lookup failed while checking this host, so its result is unverified.'));
+      continue;
+    }
+    if (!r.ips.length) {
+      findings.push(f('bad', 'Mail server does not resolve', h.host + ' has no A or AAAA record — mail addressed to it will bounce.'));
+      points -= 30;
+    } else {
+      findings.push(f('ok', h.host + ' resolves', 'Reachable at ' + r.ips.slice(0, 3).join(', ') + (r.ips.length > 3 ? ' and more' : '') + '.'));
+    }
+  }
+  return { points: Math.max(0, points), findings, hosts };
+}
+
+/* ---------------- Bounce analysis (knowledge base: the bounce-codes guide) ---------------- */
+
+const BOUNCE_KB = [
+  {
+    match: (s, e, t) => e === '5.1.1' || /user unknown|unknown user|no such user|no such recipient|invalid recipient|recipient.*not found|mailbox (does ?n[o']t|does not) exist|addressee unknown/i.test(t),
+    type: 'hard', title: 'The mailbox does not exist',
+    meaning: 'The receiving server says there is no mailbox at that address — it was mistyped, the account was deleted, or it never existed.',
+    cause: 'List quality — a bad address, not a fault in your sending setup.',
+    fix: 'Remove the address from your list the same day and suppress it so it is never mailed again. If many addresses bounce this way after an import, clean or re-verify the whole list before sending more — repeated hard bounces damage your sender reputation.',
+  },
+  {
+    match: (s, e, t) => e === '5.1.2' || /bad destination|domain.*(not found|does not exist|no such domain)|no mx (record|records)|unrouteable/i.test(t),
+    type: 'hard', title: 'The recipient domain cannot receive mail',
+    meaning: 'The domain in the address does not exist, or publishes no mail servers, so there is nowhere to deliver to.',
+    cause: 'List quality — a mistyped or dead domain in the address.',
+    fix: 'Check the domain spelling. If it is correct, the organisation has no working mail setup — remove the address and suppress it.',
+  },
+  {
+    match: (s, e) => e === '5.2.2',
+    type: 'hard', title: 'The mailbox is full (permanent)',
+    meaning: 'The recipient mailbox is over its storage limit and the server has given up — the permanent version of a full-mailbox bounce.',
+    cause: 'Recipient mailbox — nothing wrong on your side.',
+    fix: 'Remove the address. A mailbox that stays full for good is effectively abandoned.',
+  },
+  {
+    match: (s, e, t) => e === '4.2.2' || /mailbox full|over quota|insufficient (system )?storage|storage limit|quota exceeded/i.test(t),
+    type: 'soft', title: 'The mailbox is full',
+    meaning: 'The recipient mailbox has hit its storage limit, so the server cannot accept more mail right now.',
+    cause: 'Recipient mailbox — temporary on the receiving side.',
+    fix: 'Let your sending system retry for 2–3 days. If it never clears, treat the address as dead and remove it.',
+  },
+  {
+    match: (s, e, t) => /^5\.7\./.test(e) || /blocked|block ?list|blacklist|dnsbl|spamhaus|spamcop|policy reasons|reputation/i.test(t),
+    type: 'hard', title: 'Blocked for policy or reputation reasons',
+    meaning: 'The receiving server refused the mail because of who is sending it — your IP or domain is on a blocklist, your reputation is poor, or your authentication failed their policy check.',
+    cause: 'Reputation, policy or authentication — check the bounce text: if it names SPF, DKIM or DMARC, it is authentication; if it names a blocklist, it is reputation.',
+    fix: 'Stop and investigate before sending more: run check_email_auth on your domain, run check_blacklists on your sending IP, and read the full bounce text for the named list or reason. Fix the cause, request delisting if listed, then restart at low volume.',
+  },
+  {
+    match: (s, e, t) => /spam|content filter|message rejected as|looks like spam/i.test(t),
+    type: 'hard', title: 'Rejected as spam-like content',
+    meaning: 'The receiving filter judged the message itself — its content, links or sending pattern — to be spam.',
+    cause: 'Content or reputation — the message tripped a spam filter.',
+    fix: 'Check authentication first (a broken SPF, DKIM or DMARC record is a common trigger), then review the content: link-heavy or image-only mail and classic sales phrasing are the usual suspects. Test with a plainer version before resending.',
+  },
+  {
+    match: (s, e, t) => e === '5.5.0' || (/relay/i.test(t) && /^5/.test(s)),
+    type: 'hard', title: 'Relay denied / sending configuration error',
+    meaning: 'A server refused to pass the message on — "relay not permitted" means the sending server tried to hand mail to a server that does not accept it from them.',
+    cause: 'Sender configuration — a setup mistake on the sending side, not a list problem.',
+    fix: 'Check the sending setup: the sending service must be authorised for your domain (it belongs in your SPF record), and SMTP credentials/host settings in your tool must match the provider.',
+  },
+  {
+    match: (s) => s === '554',
+    type: 'hard', title: 'Transaction failed (554)',
+    meaning: 'A catch-all permanent rejection — the server will not say exactly why. It is commonly spam filtering or a failed SPF, DKIM or DMARC check.',
+    cause: 'Policy or authentication in most cases.',
+    fix: 'Read the full bounce message for any detail after the code, and run check_email_auth on your sending domain — a broken authentication record is a common trigger.',
+  },
+  {
+    match: (s, e, t) => s === '421' || (/greylist|rate.?limit|too many|temporarily (unavailable|rejected|deferred)|try again later|server busy/i.test(t) && (s.charAt(0) === '4' || e.charAt(0) === '4')),
+    type: 'soft', title: 'Temporary refusal — busy, rate-limited or greylisted',
+    meaning: 'The receiving server could not accept the mail right now: it is busy, rate-limiting you, or greylisting (rejecting the first attempt from an unknown sender and accepting the retry a few minutes later).',
+    cause: 'Temporary — usually the receiving server, or you are sending too fast.',
+    fix: 'Your sending system should retry automatically and most of these clear on the second or third attempt. If they keep coming from the same provider, slow the volume down, spread the send over more time, and finish warmup before ramping up.',
+  },
+  {
+    match: (s) => s === '450',
+    type: 'soft', title: 'Requested action not taken (450)',
+    meaning: 'A temporary deferral — often greylisting or a policy check the receiver wants to repeat later.',
+    cause: 'Temporary — receiving side.',
+    fix: 'Retry later; your sending system normally handles this on its own.',
+  },
+  {
+    match: (s) => s === '451',
+    type: 'soft', title: 'Local error in processing (451)',
+    meaning: 'The receiving server hit a problem on its own side — a full queue or a temporary fault.',
+    cause: 'Temporary — receiving server fault.',
+    fix: 'Retry later. If every address at one provider returns 451 for days, the problem is theirs, not yours.',
+  },
+  {
+    match: (s) => s === '452',
+    type: 'soft', title: 'Insufficient system storage (452)',
+    meaning: 'The receiving system is out of storage room — most often the recipient mailbox is full.',
+    cause: 'Recipient mailbox or receiving server storage.',
+    fix: 'Retry for a few days, then stop if it never clears and remove the address.',
+  },
+  {
+    match: (s) => /^(500|501|503)\b/.test(s),
+    type: 'hard', title: 'Syntax or command-sequence error',
+    meaning: '500 is "command unrecognised", 501 is "syntax error in parameters" (often a malformed address) and 503 is "bad sequence of commands" — the sending server spoke in a way the receiver did not understand.',
+    cause: 'Sender configuration — a setup problem, not a list problem.',
+    fix: 'Check the address for typos or bad characters (501), and check your sending tool or server configuration. Normal senders rarely see these.',
+  },
+];
+
+function analyzeBounce(rawText) {
+  const text = String(rawText || '').trim();
+  const enhMatch = text.match(/\b([245]\.\d{1,3}\.\d{1,3})\b/);
+  const enhanced = enhMatch ? enhMatch[1] : '';
+  const smtpMatch = text.match(/\b([245]\d\d)\b/);
+  const smtp = smtpMatch ? smtpMatch[1] : '';
+  const entry = BOUNCE_KB.filter(k => {
+    try { return k.match(smtp, enhanced, text); } catch (e) { return false; }
+  })[0];
+  if (!entry) {
+    if (/^5/.test(smtp) || /^5/.test(enhanced)) {
+      return {
+        smtp, enhanced, type: 'hard', title: 'Permanent failure (5xx)',
+        meaning: 'A 5xx code means the server will not accept this mail until something changes — this is a hard bounce.',
+        cause: 'Not identifiable from the code alone — the words in the bounce message name the cause.',
+        fix: 'Read the full bounce message, not just the code, and remove the address from your list. If the wave started suddenly, check your authentication with check_email_auth and your IP with check_blacklists.',
+      };
+    }
+    if (/^4/.test(smtp) || /^4/.test(enhanced)) {
+      return {
+        smtp, enhanced, type: 'soft', title: 'Temporary failure (4xx)',
+        meaning: 'A 4xx code means the server could not accept the mail right now but might later — this is a soft bounce.',
+        cause: 'Temporary — receiving side, in most cases.',
+        fix: 'Let your sending system retry for 2–3 days. If one address keeps soft-bouncing for weeks, treat it as dead and remove it.',
+      };
+    }
+    return null;
+  }
+  return { smtp, enhanced, type: entry.type, title: entry.title, meaning: entry.meaning, cause: entry.cause, fix: entry.fix };
+}
+
+/* ---------------- Email header analysis ---------------- */
+
+function unfoldHeaders(text) {
+  return String(text || '').replace(/\r\n/g, '\n').replace(/\n[ \t]+/g, ' ');
+}
+
+function headerField(text, name) {
+  const m = text.match(new RegExp('^' + name + ':[ \\t]*([^\\n]*)', 'im'));
+  return m ? m[1].trim() : null;
+}
+
+function domainOfAddress(value) {
+  const m = String(value || '').match(/@([a-z0-9.-]+\.[a-z]{2,})/i);
+  return m ? m[1].toLowerCase().replace(/[>)\s]+$/, '') : null;
+}
+
+function authSegment(source, name) {
+  const parts = source.split(';');
+  for (const p of parts) {
+    const t = p.trim();
+    if (new RegExp('^' + name + '=', 'i').test(t)) return t;
+  }
+  return '';
+}
+
+function analyzeHeaders(raw) {
+  const text = unfoldHeaders(raw);
+  const blocks = [];
+  let m;
+  const re = /^Authentication-Results:[ \t]*([^\n]*)/gim;
+  while ((m = re.exec(text))) blocks.push(m[1]);
+  const arcRe = /^ARC-Authentication-Results:[ \t]*([^\n]*)/gim;
+  while ((m = arcRe.exec(text))) blocks.push(m[1]);
+  const source = blocks.join(' ; ');
+
+  const authFindings = [];
+  let pass = 0;
+  let anyResult = false;
+  const aligned = {};
+  ['spf', 'dkim', 'dmarc'].forEach(name => {
+    const mm = source.match(new RegExp('\\b' + name + '=(pass|fail|softfail|neutral|none|temperror|permerror|policy)', 'i'));
+    if (!mm) {
+      authFindings.push(f('warn', name.toUpperCase() + ' result not found', 'This header may not include an Authentication-Results verdict for ' + name.toUpperCase() + '.'));
+      return;
+    }
+    anyResult = true;
+    const result = mm[1].toLowerCase();
+    const seg = authSegment(source, name);
+    let extra = '';
+    if (name === 'spf') {
+      const mf = seg.match(/(?:smtp\.)?mailfrom=@?([a-z0-9.-]+\.[a-z]{2,})/i);
+      if (mf) { aligned.spf = mf[1].toLowerCase(); extra = ' Sending domain checked: ' + aligned.spf + '.'; }
+    }
+    if (name === 'dkim') {
+      const dd = seg.match(/header\.d=([a-z0-9.-]+\.[a-z]{2,})/i) || seg.match(/header\.i=@?([a-z0-9.-]+\.[a-z]{2,})/i);
+      if (dd) { aligned.dkim = dd[1].toLowerCase(); extra = ' Signing domain: ' + aligned.dkim + '.'; }
+    }
+    if (name === 'dmarc') {
+      const hf = seg.match(/header\.from=([a-z0-9.-]+\.[a-z]{2,})/i);
+      if (hf) { aligned.dmarc = hf[1].toLowerCase(); extra = ' From domain checked: ' + aligned.dmarc + '.'; }
+      const pol = seg.match(/\(p=(none|quarantine|reject)\)/i);
+      if (pol) extra += ' Domain policy applied: p=' + pol[1].toLowerCase() + '.';
+    }
+    if (result === 'pass') {
+      pass++;
+      authFindings.push(f('ok', name.toUpperCase() + ' passed', 'The receiving server recorded ' + name + '=pass.' + extra));
+    } else {
+      authFindings.push(f('bad', name.toUpperCase() + ' returned ' + result, 'Investigate the matching sender, domain and DNS configuration.' + extra));
+    }
+  });
+
+  const pathFindings = [];
+  const fromDomain = domainOfAddress(headerField(text, 'From'));
+  const rpDomain = domainOfAddress(headerField(text, 'Return-Path'));
+  if (fromDomain) pathFindings.push(f('ok', 'From domain is ' + fromDomain, 'This is the domain readers see and the one DMARC protects.'));
+  if (rpDomain && fromDomain) {
+    if (rpDomain === fromDomain) {
+      pathFindings.push(f('ok', 'Return-Path matches the From domain', 'Bounces go back to the same domain that sent the message.'));
+    } else {
+      pathFindings.push(f('warn', 'Return-Path domain differs from the From domain', 'Return-Path is ' + rpDomain + ' but From is ' + fromDomain + '. Normal for bulk sending platforms (they handle bounces on their own domain) — a red flag only when authentication is also failing.'));
+    }
+  }
+  if (aligned.dkim && fromDomain && aligned.dkim !== fromDomain) {
+    pathFindings.push(f('warn', 'DKIM signing domain differs from the From domain', 'Signed by ' + aligned.dkim + ' for a message from ' + fromDomain + '. DMARC needs the signing domain to align with the From domain, or SPF alignment to carry the pass.'));
+  }
+  const hops = (text.match(/^Received:[ \t]/gim) || []).length;
+  if (hops) pathFindings.push(f('ok', hops + ' Received hop' + (hops > 1 ? 's' : '') + ' in the chain', 'Each Received line is one server that handled the message on its way to the inbox.'));
+  if (/^DKIM-Signature:/im.test(text)) pathFindings.push(f('ok', 'DKIM-Signature header present', 'The message was signed; the Authentication-Results verdict above says whether the signature verified.'));
+
+  const points = anyResult ? Math.round(pass / 3 * 100) : 0;
+  const verdict = !anyResult
+    ? 'No Authentication-Results header found — paste the full raw headers (in Gmail: open the message, three dots, "Show original") and try again.'
+    : pass === 3
+      ? 'This message passed authentication cleanly — SPF, DKIM and DMARC all passed.'
+      : pass === 0
+        ? 'No passing verdicts found — treat this message (or this sending setup) with suspicion until the failures are explained.'
+        : 'Some checks need attention — the failures above are what to investigate first.';
+  return { points, anyResult, authFindings, pathFindings, verdict };
+}
+
 /* ---------------- MCP tools ---------------- */
 
 const TOOLS = [
@@ -260,9 +648,157 @@ const TOOLS = [
     },
     annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
   },
+  {
+    name: 'analyze_bounce',
+    title: 'Analyze a bounce message',
+    description: 'Explain an email bounce in plain English: paste the full bounce message or just the error (e.g. "550 5.7.1"). Returns whether it is a hard or soft bounce, what happened, the likely cause (list quality, reputation, policy, authentication, temporary), and the fix.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        bounce_text: { type: 'string', description: 'The full bounce message or the error text from the sending tool' },
+        code: { type: 'string', description: 'Just the bounce code, e.g. 550 or 550 5.7.1 (alternative to bounce_text)' },
+      },
+    },
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  },
+  {
+    name: 'check_blacklists',
+    title: 'Check DNS blacklists',
+    description: 'Check a domain\'s sending IPs (resolved from its mail servers) and/or a specific IP against 7 major DNS blacklists (Spamhaus ZEN, SpamCop, PSBL, UCEPROTECT, Mailspike, DroneBL, UBL). Reports listed or clean per list, per IP.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        domain: { type: 'string', description: 'Domain whose mail-server IPs should be checked, e.g. example.com' },
+        ip: { type: 'string', description: 'A specific IPv4 address to check, e.g. 192.0.2.10' },
+      },
+    },
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+  },
+  {
+    name: 'check_mx_health',
+    title: 'Check MX health',
+    description: 'Look up a domain\'s MX records and evaluate them: priorities, whether each mail server resolves, the likely mail provider (Google Workspace, Microsoft 365, …), and obvious misconfigurations. Returns a scored verdict with findings.',
+    inputSchema: {
+      type: 'object',
+      properties: { domain: { type: 'string', description: 'Domain to check, e.g. example.com' } },
+      required: ['domain'],
+    },
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+  },
+  {
+    name: 'analyze_email_headers',
+    title: 'Analyze email headers',
+    description: 'Explain raw email headers in plain English: the Authentication-Results verdicts for SPF, DKIM and DMARC (with the domains each check covered), From vs Return-Path alignment, and the Received hop count. Paste the full headers ("Show original" in Gmail).',
+    inputSchema: {
+      type: 'object',
+      properties: { headers: { type: 'string', description: 'The raw email headers, pasted in full' } },
+      required: ['headers'],
+    },
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  },
+  {
+    name: 'get_domain_health',
+    title: 'Full domain health report',
+    description: 'One combined health report for a domain: SPF, DKIM (common selectors), DMARC, MX and blacklist status, with an overall score out of 100, the top problems, and the recommended fix order.',
+    inputSchema: {
+      type: 'object',
+      properties: { domain: { type: 'string', description: 'Domain to check, e.g. example.com' } },
+      required: ['domain'],
+    },
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+  },
 ];
 
 async function callTool(name, args) {
+  if (name === 'analyze_bounce') {
+    const text = [args && args.code, args && args.bounce_text].filter(Boolean).join(' ');
+    if (!text.trim()) throw new Error('Provide the bounce message (bounce_text) or just the code (code), e.g. "550 5.7.1".');
+    const r = analyzeBounce(text);
+    if (!r) {
+      return 'Bounce analysis\nNo SMTP code (like 550 or 421) was found in what you pasted. Paste the full bounce message — the code and the sentence after it name the cause. The guide explains every common code: https://outboundauth.com/guides/email-bounce-codes-explained';
+    }
+    return [
+      'Bounce analysis',
+      'Code: ' + [r.smtp, r.enhanced].filter(Boolean).join(' ') + (r.smtp || r.enhanced ? '' : ' (from the message text)'),
+      'Type: ' + (r.type === 'hard' ? 'Hard bounce — permanent failure' : 'Soft bounce — temporary failure'),
+      'What it means: ' + r.title + '. ' + r.meaning,
+      'Likely cause: ' + r.cause,
+      'Fix: ' + r.fix,
+      'Healthy bounce rate is under 2% for cold email; over 5% means stop, clean the list, and check your setup. Full guide: https://outboundauth.com/guides/email-bounce-codes-explained',
+    ].join('\n');
+  }
+
+  if (name === 'analyze_email_headers') {
+    const headers = String((args && args.headers) || '');
+    if (headers.trim().length < 20) throw new Error('Paste the full raw headers (in Gmail: open the message, click the three dots, then "Show original").');
+    const r = analyzeHeaders(headers);
+    const lines = ['Header analysis (by OutboundAuth — https://outboundauth.com)', ''];
+    lines.push(renderSection('Authentication', { points: r.points, findings: r.authFindings }));
+    if (r.pathFindings.length) {
+      lines.push('');
+      lines.push('Sending path:');
+      r.pathFindings.forEach(x => {
+        const mark = x.level === 'ok' ? '[OK]' : x.level === 'warn' ? '[WARN]' : '[FAIL]';
+        lines.push('  ' + mark + ' ' + x.title + ' — ' + x.detail);
+      });
+    }
+    lines.push('');
+    lines.push('Verdict: ' + r.verdict);
+    return lines.join('\n');
+  }
+
+  if (name === 'check_blacklists') {
+    const ipArg = String((args && args.ip) || '').trim();
+    const domArg = cleanDomain(args && args.domain);
+    const targets = [];
+    if (ipArg) {
+      const octets = ipArg.split('.');
+      if (!/^\d+\.\d+\.\d+\.\d+$/.test(ipArg) || octets.some(o => Number(o) > 255)) {
+        throw new Error('The ip value is not a valid IPv4 address.');
+      }
+      targets.push({ ip: ipArg, note: 'the IP you provided' });
+    }
+    if (domArg) {
+      const mxRes = await doh(domArg, 'MX');
+      const hosts = mxRes.ok ? parseMx(mxRes.answers) : [];
+      const ips = await ipsForDomain(domArg, hosts);
+      ips.forEach(ip => {
+        if (!targets.some(t => t.ip === ip)) targets.push({ ip, note: 'an IP ' + domArg + ' sends or receives mail on' });
+      });
+      if (!ips.length && !targets.length) {
+        return 'Blacklist check for ' + domArg + '\nNo public IPv4 address was found for this domain or its mail servers, so there is nothing to check against the lists.';
+      }
+    }
+    if (!targets.length) throw new Error('Provide a valid domain, e.g. example.com, and/or an ip to check.');
+    const lines = ['Blacklist check' + (domArg ? ' for ' + domArg : '') + ' (by OutboundAuth — https://outboundauth.com)', ''];
+    let listedCount = 0;
+    let checkedCount = 0;
+    for (const t of targets) {
+      const r = await checkIpBlacklists(t.ip);
+      lines.push(t.ip + ' (' + t.note + '):');
+      if (!r.checked.length) {
+        lines.push('  [WARN] The blacklist servers could not be reached — this IP is unverified.');
+        continue;
+      }
+      checkedCount++;
+      HEALTH_RBLS.forEach(z => {
+        if (!r.checked.includes(z)) return;
+        const hit = r.listed.filter(l => l.zone === z)[0];
+        if (hit) {
+          listedCount++;
+          lines.push('  [FAIL] ' + (RBL_NAMES[z] || z) + ' (' + z + ') — LISTED, returned ' + hit.codes.join(', '));
+        } else {
+          lines.push('  [OK] ' + (RBL_NAMES[z] || z) + ' (' + z + ') — clean');
+        }
+      });
+      lines.push('');
+    }
+    if (!checkedCount) lines.push('Summary: the blacklist check could not be completed — try again in a moment.');
+    else if (listedCount) lines.push('Summary: ' + listedCount + ' listing' + (listedCount > 1 ? 's' : '') + ' found. A listing drags mail into spam until it is removed — fix the cause first, then request delisting from the list operator.');
+    else lines.push('Summary: clean on every list checked.');
+    return lines.join('\n');
+  }
+
   const rawDomain = args && args.domain;
   const domain = cleanDomain(rawDomain);
   if (!domain) throw new Error('Provide a valid domain, e.g. example.com (no http://, no paths).');
@@ -333,6 +869,84 @@ async function callTool(name, args) {
       '',
       'Overall: ' + overall + '/100 — ' + (overall >= 85 ? 'solid authentication posture' : overall >= 60 ? 'usable, with gaps to close' : 'weak — fix the failures above before sending at volume'),
     ].join('\n');
+  }
+
+  if (name === 'check_mx_health') {
+    const res = await doh(domain, 'MX');
+    if (!res.ok) throw new Error('Live DNS lookup failed — try again in a moment.');
+    const r = await evalMxHealth(domain, res.answers);
+    return 'MX health check for ' + domain + '\n' + renderSection('MX', r);
+  }
+
+  if (name === 'get_domain_health') {
+    const [spfRes, dmarcRes, mxRes, dkimHits] = await Promise.all([
+      doh(domain, 'TXT'),
+      doh('_dmarc.' + domain, 'TXT'),
+      doh(domain, 'MX'),
+      Promise.all(COMMON_DKIM_SELECTORS.map(s => lookupDkim(domain, s).catch(() => ({ ok: false })))),
+    ]);
+    if (!spfRes.ok && !dmarcRes.ok && !mxRes.ok) {
+      throw new Error('Live DNS lookup failed — try again in a moment.');
+    }
+    const spf = evalSpf(spfRes.ok ? spfRes.answers : null, domain);
+    const dmarc = evalDmarc(dmarcRes.ok ? dmarcRes.answers : null, domain);
+    const mxHosts = parseMx(mxRes.ok ? mxRes.answers : null);
+    const mxSection = evalMx(mxRes.ok ? mxRes.answers : null);
+    const found = dkimHits.filter(h => h.ok && h.record);
+    let dkimPoints;
+    let dkimSection;
+    if (!found.length) {
+      dkimPoints = 50;
+      dkimSection = 'DKIM: 50/100 — needs review\n  [WARN] No DKIM record found for common selectors — checked ' + COMMON_DKIM_SELECTORS.join(', ') + '. If the domain signs mail, use check_dkim with the exact selector.';
+    } else {
+      const r = evalDkimRecord(found[0].record, found[0].label);
+      dkimPoints = r.points;
+      dkimSection = renderSection('DKIM (' + found[0].label + ')', r);
+      if (found.length > 1) dkimSection += '\n  [OK] ' + found.length + ' selectors publish keys — ' + found.map(x => x.label).join(', ');
+    }
+    const bl = await evalBlacklist(domain, mxHosts);
+    const blSection = bl.points === null
+      ? 'Blacklists: not scored\n' + bl.findings.map(x => '  ' + (x.level === 'ok' ? '[OK]' : x.level === 'warn' ? '[WARN]' : '[FAIL]') + ' ' + x.title + ' — ' + x.detail).join('\n')
+      : renderSection('Blacklists', bl);
+    // Same weights as the website's domain health report: SPF 30, DKIM 25, DMARC 25, MX 10, blacklists 10.
+    const parts = [
+      { w: 30, p: spf.points }, { w: 25, p: dkimPoints }, { w: 25, p: dmarc.points }, { w: 10, p: mxSection.points },
+    ];
+    if (bl.points !== null && bl.points !== undefined) parts.push({ w: 10, p: bl.points });
+    const totalW = parts.reduce((a, s) => a + s.w, 0);
+    const overall = Math.round(parts.reduce((a, s) => a + s.p * s.w, 0) / totalW);
+    const problems = [];
+    [['SPF', spf.findings], ['DMARC', dmarc.findings], ['MX', mxSection.findings], ['Blacklists', bl.findings]].forEach(([label, fs]) => {
+      fs.forEach(x => { if (x.level !== 'ok') problems.push({ label, level: x.level, title: x.title }); });
+    });
+    if (!found.length) problems.push({ label: 'DKIM', level: 'warn', title: 'No DKIM record found for common selectors' });
+    problems.sort((a, b) => (a.level === b.level ? 0 : a.level === 'bad' ? -1 : 1));
+    const lines = [
+      'Domain health report for ' + domain + ' (by OutboundAuth — https://outboundauth.com)',
+      '',
+      renderSection('SPF', spf),
+      '',
+      dkimSection,
+      '',
+      renderSection('DMARC', dmarc),
+      '',
+      renderSection('MX', mxSection),
+      '',
+      blSection,
+      '',
+      'Overall: ' + overall + '/100 — ' + (overall >= 85 ? 'healthy — keep monitoring for quiet changes' : overall >= 60 ? 'usable, with gaps to close' : 'needs attention before sending at volume'),
+    ];
+    if (problems.length) {
+      lines.push('');
+      lines.push('Top problems:');
+      problems.slice(0, 5).forEach((p, i) => lines.push('  ' + (i + 1) + '. [' + p.label + '] ' + p.title));
+      lines.push('');
+      lines.push('Recommended fix order: authentication first (SPF, then DKIM, then DMARC), then any blacklist listing, then MX issues — the same order as the deliverability checklist: https://outboundauth.com/guides/cold-email-deliverability-checklist');
+    } else {
+      lines.push('');
+      lines.push('Top problems: none found. Records can still break quietly — re-check before every big send.');
+    }
+    return lines.join('\n');
   }
 
   throw new Error('Unknown tool: ' + name);
@@ -446,7 +1060,7 @@ gtag('config','G-PLRGVLMB8S');
       <article class="article">
         <div class="kicker">MCP Server</div>
         <h1>Check email authentication from inside your AI assistant</h1>
-        <p class="lede">OutboundAuth also runs as an MCP server. Connect it once, and Claude, Cursor, ChatGPT and other MCP-compatible assistants can check any domain's SPF, DKIM and DMARC for you — live, scored, and explained in plain English, without leaving your chat.</p>
+        <p class="lede">OutboundAuth also runs as an MCP server. Connect it once, and Claude, Cursor, ChatGPT and other MCP-compatible assistants can run live deliverability checks for you — SPF, DKIM, DMARC, MX health, blacklists and more — scored and explained in plain English, without leaving your chat.</p>
 
         <h2>The endpoint</h2>
         <div class="endpoint-box">
@@ -455,12 +1069,17 @@ gtag('config','G-PLRGVLMB8S');
         </div>
         <p>This page is the human front door. AI assistants connect to the same address using MCP (Streamable HTTP) — the server is live and answering right now.</p>
 
-        <h2>The four tools</h2>
+        <h2>The nine tools</h2>
         <ul>
           <li><strong>check_email_auth</strong> — the full check: SPF, DKIM and DMARC in one pass, with a score out of 100 for each.</li>
           <li><strong>check_spf</strong> — reads the live SPF record and flags a missing hard fail, too many DNS lookups, and other common faults.</li>
           <li><strong>check_dmarc</strong> — reads the DMARC record and checks the policy (none, quarantine or reject) and reporting addresses.</li>
           <li><strong>check_dkim</strong> — checks a DKIM selector's public key record for a domain.</li>
+          <li><strong>get_domain_health</strong> — the one-call report: SPF, DKIM, DMARC, MX and blacklist status with a single score out of 100, the top problems and the fix order.</li>
+          <li><strong>check_mx_health</strong> — checks a domain's mail servers: priorities, whether each one resolves, and who the mail provider looks like.</li>
+          <li><strong>check_blacklists</strong> — checks a domain's sending IPs (or one IP you name) against seven major DNS blacklists.</li>
+          <li><strong>analyze_bounce</strong> — paste a bounce message or code and get the plain-English meaning, the likely cause and the fix.</li>
+          <li><strong>analyze_email_headers</strong> — paste raw email headers and get the SPF, DKIM and DMARC verdicts explained, plus the sending path.</li>
         </ul>
 
         <h2>Connect it in under a minute</h2>
