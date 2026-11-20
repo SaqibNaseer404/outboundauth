@@ -3,7 +3,7 @@
 // as MCP tools any MCP-compatible assistant (Claude, Cursor, ChatGPT…) can call.
 // Deploys as a Cloudflare Pages Function: functions/mcp.js  ->  https://outboundauth.com/mcp
 
-const SERVER = { name: 'outboundauth', version: '1.1.0', title: 'OutboundAuth Deliverability' };
+const SERVER = { name: 'outboundauth', version: '1.2.0', title: 'OutboundAuth Deliverability' };
 const PROTOCOLS = ['2025-06-18', '2025-03-26', '2024-11-05'];
 const COMMON_DKIM_SELECTORS = ['google', 'selector1', 'selector2', 's1', 's2', 'k1', 'k2', 'mail', 'dkim', 'default'];
 const HEALTH_RBLS = ['zen.spamhaus.org', 'bl.spamcop.net', 'psbl.surriel.com', 'dnsbl-1.uceprotect.net', 'bl.mailspike.net', 'dnsbl.dronebl.org', 'ubl.unsubscore.com'];
@@ -598,6 +598,454 @@ function analyzeHeaders(raw) {
   return { points, anyResult, authFindings, pathFindings, verdict };
 }
 
+/* ---------------- DMARC core (shared with the web page) ---------------- */
+
+/* ============================================================
+   OutboundAuth — DMARC aggregate report core (shared)
+   One parsing + analysis core used by:
+     - the DMARC Report Analyzer web page (runs in the browser)
+     - the analyze_dmarc_report MCP tool
+   Environment-free: no DOM, no Node APIs, no network.
+   ============================================================ */
+
+function dmarcParseXml(xml) {
+  if (typeof xml !== 'string') throw new Error('Report content is not text.');
+  var pos = 0, len = xml.length;
+  var root = null, stack = [];
+
+  function fail(msg) { throw new Error('Could not parse the XML report: ' + msg); }
+  function current() { return stack.length ? stack[stack.length - 1] : null; }
+  function decodeEntities(s) {
+    return s.replace(/&(#x?[0-9a-fA-F]+|amp|lt|gt|quot|apos);/g, function (m, e) {
+      if (e === 'amp') return '&';
+      if (e === 'lt') return '<';
+      if (e === 'gt') return '>';
+      if (e === 'quot') return '"';
+      if (e === 'apos') return "'";
+      var code = (e.charAt(1) === 'x' || e.charAt(1) === 'X')
+        ? parseInt(e.slice(2), 16)
+        : parseInt(e.slice(1), 10);
+      return isNaN(code) ? m : String.fromCodePoint(code);
+    });
+  }
+  function addText(t) {
+    var c = current();
+    if (c) c.text += t;
+    else if (t.trim()) fail('text outside the root element');
+  }
+  function findTagEnd(s, lt) {
+    var q = null;
+    for (var j = lt + 1; j < s.length; j++) {
+      var ch = s.charAt(j);
+      if (q) { if (ch === q) q = null; }
+      else if (ch === '"' || ch === "'") q = ch;
+      else if (ch === '>') return j;
+    }
+    return -1;
+  }
+
+  while (pos < len) {
+    var lt = xml.indexOf('<', pos);
+    if (lt === -1) { addText(decodeEntities(xml.slice(pos))); pos = len; break; }
+    if (lt > pos) addText(decodeEntities(xml.slice(pos, lt)));
+
+    if (xml.indexOf('<!--', lt) === lt) {
+      var endC = xml.indexOf('-->', lt + 4);
+      if (endC === -1) fail('unterminated comment');
+      pos = endC + 3;
+    } else if (xml.indexOf('<![CDATA[', lt) === lt) {
+      var endCd = xml.indexOf(']]>', lt + 9);
+      if (endCd === -1) fail('unterminated CDATA section');
+      addText(xml.slice(lt + 9, endCd));
+      pos = endCd + 3;
+    } else if (xml.indexOf('<?', lt) === lt) {
+      var endP = xml.indexOf('?>', lt + 2);
+      if (endP === -1) fail('unterminated processing instruction');
+      pos = endP + 2;
+    } else if (xml.indexOf('<!', lt) === lt) {
+      var endD = xml.indexOf('>', lt + 2);
+      if (endD === -1) fail('unterminated declaration');
+      pos = endD + 1;
+    } else if (xml.indexOf('</', lt) === lt) {
+      var endT = xml.indexOf('>', lt + 2);
+      if (endT === -1) fail('unterminated closing tag');
+      var closeName = xml.slice(lt + 2, endT).trim();
+      var open = stack.pop();
+      if (!open) fail('unexpected closing tag </' + closeName + '>');
+      if (open.tag !== closeName) fail('mismatched tags: <' + open.tag + '> closed by </' + closeName + '>');
+      pos = endT + 1;
+    } else {
+      var gt = findTagEnd(xml, lt);
+      if (gt === -1) fail('unterminated tag');
+      var inner = xml.slice(lt + 1, gt);
+      var selfClosing = /\/\s*$/.test(inner);
+      if (selfClosing) inner = inner.replace(/\/\s*$/, '');
+      var nameMatch = inner.match(/^\s*([^\s/>]+)/);
+      if (!nameMatch) fail('malformed tag');
+      var el = { tag: nameMatch[1], attrs: {}, children: [], text: '' };
+      var attrRe = /([^\s=/>]+)\s*=\s*("([^"]*)"|'([^']*)')/g, am;
+      var attrSrc = inner.slice(nameMatch[0].length);
+      while ((am = attrRe.exec(attrSrc)) !== null) {
+        el.attrs[am[1]] = decodeEntities(am[3] !== undefined ? am[3] : am[4]);
+      }
+      var parent = current();
+      if (parent) parent.children.push(el);
+      else if (!root) root = el;
+      else fail('multiple root elements');
+      if (!selfClosing) stack.push(el);
+      pos = gt + 1;
+    }
+  }
+  if (stack.length) fail('unclosed tag <' + stack[stack.length - 1].tag + '>');
+  if (!root) fail('no XML element found');
+  return root;
+}
+
+function dmarcLocalName(tag) {
+  var i = tag.indexOf(':');
+  return i === -1 ? tag : tag.slice(i + 1);
+}
+function dmarcChildren(el, tag) {
+  if (!el) return [];
+  return el.children.filter(function (c) { return dmarcLocalName(c.tag) === tag; });
+}
+function dmarcChild(el, tag) {
+  var c = dmarcChildren(el, tag);
+  return c.length ? c[0] : null;
+}
+function dmarcText(el, tag) {
+  var c = dmarcChild(el, tag);
+  return c ? c.text.trim() : '';
+}
+function dmarcNum(s) {
+  var n = parseInt(s, 10);
+  return isNaN(n) || n < 0 ? 0 : n;
+}
+
+function dmarcReadReport(root) {
+  var meta = dmarcChild(root, 'report_metadata');
+  var range = dmarcChild(meta, 'date_range');
+  var pol = dmarcChild(root, 'policy_published');
+  var report = {
+    orgName: dmarcText(meta, 'org_name'),
+    email: dmarcText(meta, 'email'),
+    reportId: dmarcText(meta, 'report_id'),
+    dateBegin: range ? dmarcNum(dmarcText(range, 'begin')) || null : null,
+    dateEnd: range ? dmarcNum(dmarcText(range, 'end')) || null : null,
+    domain: dmarcText(pol, 'domain'),
+    adkim: dmarcText(pol, 'adkim'),
+    aspf: dmarcText(pol, 'aspf'),
+    policy: dmarcText(pol, 'p'),
+    sp: dmarcText(pol, 'sp'),
+    pct: dmarcText(pol, 'pct'),
+    records: [],
+  };
+  dmarcChildren(root, 'record').forEach(function (rec) {
+    var row = dmarcChild(rec, 'row');
+    var evald = dmarcChild(row, 'policy_evaluated');
+    var ids = dmarcChild(rec, 'identifiers');
+    var auth = dmarcChild(rec, 'auth_results');
+    var r = {
+      sourceIp: dmarcText(row, 'source_ip'),
+      count: dmarcNum(dmarcText(row, 'count')),
+      disposition: dmarcText(evald, 'disposition'),
+      evalDkim: dmarcText(evald, 'dkim'),
+      evalSpf: dmarcText(evald, 'spf'),
+      reasons: dmarcChildren(evald, 'reason').map(function (x) { return dmarcText(x, 'type'); }).filter(Boolean),
+      headerFrom: dmarcText(ids, 'header_from'),
+      envelopeFrom: dmarcText(ids, 'envelope_from'),
+      authDkim: dmarcChildren(auth, 'dkim').map(function (d) {
+        return { domain: dmarcText(d, 'domain'), selector: dmarcText(d, 'selector'), result: dmarcText(d, 'result') };
+      }),
+      authSpf: dmarcChildren(auth, 'spf').map(function (s) {
+        return { domain: dmarcText(s, 'domain'), scope: dmarcText(s, 'scope'), result: dmarcText(s, 'result') };
+      }),
+    };
+    report.records.push(r);
+  });
+  return report;
+}
+
+/* Split pasted content into individual <feedback> documents and parse each.
+   Throws a plain-English Error when nothing usable is found. */
+function dmarcParseReports(input) {
+  var text = String(input == null ? '' : input);
+  if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+  var lower = text.toLowerCase();
+  var segments = [], idx = 0;
+  while (true) {
+    var start = lower.indexOf('<feedback', idx);
+    if (start === -1) break;
+    var endTag = lower.indexOf('</feedback>', start);
+    if (endTag === -1) break;
+    segments.push(text.slice(start, endTag + '</feedback>'.length));
+    idx = endTag + '</feedback>'.length;
+  }
+  if (!segments.length) {
+    throw new Error('No DMARC aggregate report found in this content. DMARC reports are XML files with a <feedback> root element — check you pasted or picked the aggregate report (the .xml or .xml.gz files sent to your rua address), not a forensic report or a screenshot of one.');
+  }
+  var reports = [], errors = [];
+  segments.forEach(function (seg, i) {
+    try {
+      var root = dmarcParseXml(seg);
+      if (dmarcLocalName(root.tag) !== 'feedback') throw new Error('root element is <' + root.tag + '>, not <feedback>');
+      reports.push(dmarcReadReport(root));
+    } catch (e) {
+      errors.push('Report ' + (i + 1) + ': ' + e.message);
+    }
+  });
+  if (!reports.length) {
+    throw new Error('The report could not be read. ' + errors.join(' '));
+  }
+  return { reports: reports, errors: errors };
+}
+
+function dmarcAligned(domain, headerFrom) {
+  if (!domain || !headerFrom) return false;
+  var d = String(domain).toLowerCase(), h = String(headerFrom).toLowerCase();
+  return d === h || h.slice(-(d.length + 1)) === '.' + d || d.slice(-(h.length + 1)) === '.' + h;
+}
+
+/* A record passes DMARC when the *evaluated* (aligned) SPF or DKIM verdict
+   is pass. Falls back to aligned auth_results when evaluation is absent. */
+function dmarcRecordPasses(rec) {
+  if (rec.evalDkim === 'pass' || rec.evalSpf === 'pass') return true;
+  if (rec.evalDkim || rec.evalSpf) return false;
+  return rec.authSpf.some(function (a) { return a.result === 'pass' && dmarcAligned(a.domain, rec.headerFrom); }) ||
+         rec.authDkim.some(function (a) { return a.result === 'pass' && dmarcAligned(a.domain, rec.headerFrom); });
+}
+
+function dmarcFmtNum(n) {
+  return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+var DMARC_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+function dmarcFmtDate(epochSec) {
+  if (!epochSec) return '';
+  var d = new Date(epochSec * 1000);
+  return d.getUTCDate() + ' ' + DMARC_MONTHS[d.getUTCMonth()] + ' ' + d.getUTCFullYear();
+}
+function dmarcJoinSet(obj) {
+  var keys = Object.keys(obj);
+  return keys.length ? keys.join(' / ') : '—';
+}
+
+function dmarcFinaliseSource(s) {
+  var status = s.failCount === 0 ? 'pass' : (s.passCount === 0 ? 'fail' : 'mixed');
+  var spf = dmarcJoinSet(s.evalSpf), dkim = dmarcJoinSet(s.evalDkim), disp = dmarcJoinSet(s.dispositions);
+  var unaligned = Object.keys(s.authPassDomains);
+  var fwdReason = s.reasonTypes.some(function (t) {
+    return t === 'forwarded' || t === 'mailing_list' || t === 'trusted_forwarder';
+  });
+  var label, detail;
+  if (status === 'pass') {
+    label = 'Passing — legitimate sender';
+    detail = 'SPF or DKIM passes and lines up with your domain, so DMARC passes for this source.';
+  } else if (status === 'mixed') {
+    label = 'Mostly passing — some mail fails';
+    detail = dmarcFmtNum(s.failCount) + ' of ' + dmarcFmtNum(s.count) + ' messages from this source fail DMARC. Usually one sending stream (a different tool or subdomain) is missing SPF or DKIM alignment — ask the provider to fix it.';
+  } else if (unaligned.length || fwdReason) {
+    label = 'Forwarding / mailing-list pattern';
+    detail = 'This source\'s mail authenticates as ' + (unaligned.length ? unaligned.join(', ') : 'another domain') + ', not as your domain, so DMARC fails on alignment. Typical of forwarders and mailing lists that pass mail on — the mail is usually real, but it will keep failing until the forwarder preserves DKIM or you accept the risk.';
+  } else if (disp.indexOf('reject') !== -1 || disp.indexOf('quarantine') !== -1) {
+    label = 'Failing both — suspicious, investigate';
+    detail = 'SPF and DKIM both fail and your policy already blocks or quarantines this mail. If this is a service you use, its authentication is broken — fix it today. If you don\'t recognise the source, this is what spoofing looks like, and your policy is doing its job.';
+  } else {
+    label = 'Failing both — suspicious, investigate';
+    detail = 'SPF and DKIM both fail, and because the published policy is p=none these messages were still delivered. If you recognise this sender, fix its setup. If you don\'t, treat it as a spoofing attempt — this pattern is exactly what moving to p=quarantine or p=reject protects against.';
+  }
+  return {
+    ip: s.ip, count: s.count, passCount: s.passCount, failCount: s.failCount,
+    spf: spf, dkim: dkim, disposition: disp,
+    headerFroms: Object.keys(s.headerFroms),
+    status: status, label: label, detail: detail,
+  };
+}
+
+function dmarcAnalyse(parsed) {
+  var map = {}, order = [];
+  var totalMessages = 0, passMessages = 0, totalRecords = 0;
+  var dateBegin = null, dateEnd = null;
+  var orgs = {}, domains = {}, policies = {};
+
+  parsed.reports.forEach(function (rep) {
+    if (rep.orgName) orgs[rep.orgName] = true;
+    if (rep.domain) domains[rep.domain] = true;
+    if (rep.policy) policies[rep.policy] = true;
+    if (rep.dateBegin && (dateBegin === null || rep.dateBegin < dateBegin)) dateBegin = rep.dateBegin;
+    if (rep.dateEnd && (dateEnd === null || rep.dateEnd > dateEnd)) dateEnd = rep.dateEnd;
+    rep.records.forEach(function (rec) {
+      totalRecords += 1;
+      totalMessages += rec.count;
+      var key = rec.sourceIp || '(unknown source)';
+      if (!map[key]) {
+        map[key] = {
+          ip: key, count: 0, passCount: 0, failCount: 0,
+          dispositions: {}, evalSpf: {}, evalDkim: {}, headerFroms: {},
+          authPassDomains: {}, reasonTypes: [],
+        };
+        order.push(key);
+      }
+      var s = map[key];
+      s.count += rec.count;
+      if (dmarcRecordPasses(rec)) { s.passCount += rec.count; passMessages += rec.count; }
+      else s.failCount += rec.count;
+      if (rec.disposition) s.dispositions[rec.disposition] = true;
+      if (rec.evalSpf) s.evalSpf[rec.evalSpf] = true;
+      if (rec.evalDkim) s.evalDkim[rec.evalDkim] = true;
+      if (rec.headerFrom) s.headerFroms[rec.headerFrom] = true;
+      rec.reasons.forEach(function (t) { if (s.reasonTypes.indexOf(t) === -1) s.reasonTypes.push(t); });
+      rec.authSpf.concat(rec.authDkim).forEach(function (a) {
+        if (a.result === 'pass' && a.domain && !dmarcAligned(a.domain, rec.headerFrom)) s.authPassDomains[a.domain] = true;
+      });
+    });
+  });
+
+  var sources = order.map(function (k) { return dmarcFinaliseSource(map[k]); });
+  sources.sort(function (a, b) { return b.count - a.count; });
+
+  var failMessages = totalMessages - passMessages;
+  var problems = [];
+  var enforced = sources.filter(function (s) {
+    return s.status === 'fail' && s.label.indexOf('suspicious') !== -1 &&
+      (s.disposition.indexOf('reject') !== -1 || s.disposition.indexOf('quarantine') !== -1);
+  });
+  var unenforced = sources.filter(function (s) {
+    return s.status === 'fail' && s.label.indexOf('suspicious') !== -1 && enforced.indexOf(s) === -1;
+  });
+  var forwarding = sources.filter(function (s) { return s.label.indexOf('Forwarding') === 0; });
+  var mixed = sources.filter(function (s) { return s.status === 'mixed'; });
+
+  enforced.forEach(function (s) {
+    problems.push({ level: 'bad', title: s.ip + ' is failing both checks and being blocked (' + dmarcFmtNum(s.failCount) + ' messages)',
+      detail: 'If this is a service you send through, its SPF/DKIM alignment is broken — fix it before real mail is lost. If you don\'t recognise it, it is likely spoofing and your policy is working.' });
+  });
+  unenforced.forEach(function (s) {
+    problems.push({ level: 'bad', title: s.ip + ' is failing both checks but was still delivered (' + dmarcFmtNum(s.failCount) + ' messages)',
+      detail: 'Your published policy is p=none, so receivers took no action. Recognise the sender? Get its authentication fixed. Don\'t recognise it? Treat it as spoofing — and as a reason to enforce.' });
+  });
+  forwarding.forEach(function (s) {
+    problems.push({ level: 'warn', title: s.ip + ' looks like a forwarder or mailing list (' + dmarcFmtNum(s.failCount) + ' messages)',
+      detail: 'Its mail authenticates as another domain, so DMARC fails on alignment. Usually legitimate — but decide whether you accept this source failing, because strict enforcement will quarantine its mail.' });
+  });
+  mixed.forEach(function (s) {
+    problems.push({ level: 'warn', title: s.ip + ' passes only some of the time (' + dmarcFmtNum(s.failCount) + ' failing messages)',
+      detail: 'One of this sender\'s streams is missing alignment. Ask the provider which of their systems sends without a passing, aligned SPF or DKIM result.' });
+  });
+
+  var policyList = Object.keys(policies);
+  if (totalMessages > 0 && failMessages === 0 && sources.length) {
+    if (policyList.indexOf('reject') !== -1) {
+      problems.push({ level: 'ok', title: 'Healthy: every source passes and the policy is p=reject',
+        detail: 'This is the end state you want. Keep watching reports weekly — new tools and vendors show up as new sources first.' });
+    } else {
+      problems.push({ level: 'ok', title: 'Every source passes — you can strengthen the policy',
+        detail: 'If 1–2 weeks of reports all look like this, move from ' + (policyList.join(' / ') || 'p=none') + ' towards p=quarantine, then p=reject, so failing mail is actually stopped.' });
+    }
+  } else if (policyList.indexOf('none') !== -1) {
+    problems.push({ level: 'warn', title: 'Published policy is p=none (monitor only)',
+      detail: 'Nothing failing is being stopped yet — that is correct while you clean up. Fix the failing legitimate senders above first, then step up to p=quarantine (pct=50 is a gentle ramp), then p=reject.' });
+  } else if (policyList.indexOf('quarantine') !== -1 && failMessages > 0) {
+    problems.push({ level: 'warn', title: 'Policy is p=quarantine — finish the job',
+      detail: 'Once the failing sources above are fixed or accepted, move to p=reject so spoofed mail is refused outright instead of landing in spam.' });
+  }
+  if (!problems.length) {
+    problems.push({ level: 'warn', title: 'No records found in this report',
+      detail: 'The report parsed but contained no <record> rows — it may cover a period with no mail, or the file may be truncated.' });
+  }
+
+  return {
+    reportCount: parsed.reports.length,
+    parseErrors: parsed.errors,
+    orgs: Object.keys(orgs),
+    domains: Object.keys(domains),
+    policies: policyList,
+    dateBegin: dateBegin,
+    dateEnd: dateEnd,
+    totalMessages: totalMessages,
+    passMessages: passMessages,
+    failMessages: failMessages,
+    passPct: totalMessages ? Math.round((passMessages / totalMessages) * 100) : 0,
+    totalRecords: totalRecords,
+    sources: sources,
+    problems: problems,
+  };
+}
+
+/* Plain-text rendering — the MCP tool returns exactly this. */
+function dmarcRenderText(a) {
+  var lines = ['DMARC report analysis (by OutboundAuth — https://outboundauth.com)', ''];
+  var who = (a.orgs.join(', ') || 'Unknown reporter') + ' → ' + (a.domains.join(', ') || 'unknown domain');
+  var when = a.dateBegin ? ' · ' + dmarcFmtDate(a.dateBegin) + (a.dateEnd && a.dateEnd !== a.dateBegin ? ' to ' + dmarcFmtDate(a.dateEnd) : '') : '';
+  lines.push('Report: ' + who + when + (a.reportCount > 1 ? ' · ' + a.reportCount + ' reports combined' : ''));
+  lines.push('Published policy: ' + (a.policies.length ? 'p=' + a.policies.join(', p=') : 'not stated'));
+  lines.push('Messages: ' + dmarcFmtNum(a.totalMessages) + ' total · ' + dmarcFmtNum(a.passMessages) + ' passing (' + a.passPct + '%) · ' + dmarcFmtNum(a.failMessages) + ' failing');
+  lines.push('');
+  lines.push('Sources, biggest risk first:');
+  var risk = a.sources.slice().sort(function (x, y) {
+    var rank = function (s) { return s.status === 'fail' ? 0 : s.status === 'mixed' ? 1 : 2; };
+    return rank(x) - rank(y) || y.count - x.count;
+  });
+  if (!risk.length) lines.push('  (no sources)');
+  risk.forEach(function (s) {
+    lines.push('- ' + s.ip + ' — ' + dmarcFmtNum(s.count) + ' messages · SPF ' + s.spf + ' · DKIM ' + s.dkim + ' · disposition ' + s.disposition);
+    lines.push('  ' + s.label + '. ' + s.detail);
+  });
+  lines.push('');
+  lines.push('Top problems, in fix order:');
+  a.problems.forEach(function (p, i) {
+    var mark = p.level === 'bad' ? '[FIX FIRST]' : p.level === 'warn' ? '[CHECK]' : '[OK]';
+    lines.push((i + 1) + '. ' + mark + ' ' + p.title + ' — ' + p.detail);
+  });
+  if (a.parseErrors.length) {
+    lines.push('');
+    lines.push('Note: ' + a.parseErrors.join(' '));
+  }
+  lines.push('');
+  lines.push('How DMARC reports drive a safe rollout: https://outboundauth.com/guides/dmarc-guide');
+  return lines.join('\n');
+}
+
+/* Node test hook — inert in browsers and in the MCP worker. */
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    dmarcParseXml: dmarcParseXml,
+    dmarcParseReports: dmarcParseReports,
+    dmarcAnalyse: dmarcAnalyse,
+    dmarcRenderText: dmarcRenderText,
+  };
+}
+
+
+/* ---------------- analyze_dmarc_report: tool definition ---------------- */
+
+const ANALYZE_DMARC_REPORT_TOOL = {
+  name: 'analyze_dmarc_report',
+  title: 'Analyze a DMARC aggregate report',
+  description: 'Explain a DMARC aggregate report in plain English: paste the report XML (the files sent to your rua address; several reports pasted together also work). Returns the reporting organisation and domain, total and passing message counts, a per-source breakdown (source IP, messages, SPF/DKIM verdicts, disposition) labelled as a legitimate sender, a forwarding / mailing-list pattern, or failing-and-suspicious — plus the top problems in fix order.',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      report_xml: { type: 'string', description: 'The DMARC aggregate report XML in full (unzipped). Several reports pasted back to back are combined.' },
+    },
+    required: ['report_xml'],
+  },
+  annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+};
+
+/* ---------------- analyze_dmarc_report: dispatch ---------------- */
+
+async function analyzeDmarcReportTool(args) {
+  const xml = String((args && args.report_xml) || '');
+  if (!xml.trim()) {
+    throw new Error('Paste the DMARC aggregate report XML (report_xml) — the .xml file receivers send to your rua address, unzipped.');
+  }
+  if (xml.length > 2000000) {
+    throw new Error('That is very large (' + xml.length + ' characters). Paste one report at a time, or a few at most.');
+  }
+  const analysis = dmarcAnalyse(dmarcParseReports(xml));
+  return dmarcRenderText(analysis);
+}
+
 /* ---------------- MCP tools ---------------- */
 
 const TOOLS = [
@@ -707,9 +1155,12 @@ const TOOLS = [
     },
     annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
   },
+  ANALYZE_DMARC_REPORT_TOOL,
 ];
 
 async function callTool(name, args) {
+  if (name === 'analyze_dmarc_report') return analyzeDmarcReportTool(args);
+
   if (name === 'analyze_bounce') {
     const text = [args && args.code, args && args.bounce_text].filter(Boolean).join(' ');
     if (!text.trim()) throw new Error('Provide the bounce message (bounce_text) or just the code (code), e.g. "550 5.7.1".');
@@ -1069,7 +1520,7 @@ gtag('config','G-PLRGVLMB8S');
         </div>
         <p>This page is the human front door. AI assistants connect to the same address using MCP (Streamable HTTP) — the server is live and answering right now.</p>
 
-        <h2>The nine tools</h2>
+        <h2>The ten tools</h2>
         <ul>
           <li><strong>check_email_auth</strong> — the full check: SPF, DKIM and DMARC in one pass, with a score out of 100 for each.</li>
           <li><strong>check_spf</strong> — reads the live SPF record and flags a missing hard fail, too many DNS lookups, and other common faults.</li>
@@ -1080,6 +1531,7 @@ gtag('config','G-PLRGVLMB8S');
           <li><strong>check_blacklists</strong> — checks a domain's sending IPs (or one IP you name) against seven major DNS blacklists.</li>
           <li><strong>analyze_bounce</strong> — paste a bounce message or code and get the plain-English meaning, the likely cause and the fix.</li>
           <li><strong>analyze_email_headers</strong> — paste raw email headers and get the SPF, DKIM and DMARC verdicts explained, plus the sending path.</li>
+          <li><strong>analyze_dmarc_report</strong> — paste a DMARC aggregate report (XML) and get, for each sending source, who passed, who failed and who looks suspicious, in plain English.</li>
         </ul>
 
         <h2>Connect it in under a minute</h2>
@@ -1097,6 +1549,80 @@ gtag('config','G-PLRGVLMB8S');
         <ol start="3">
           <li>Ask your assistant: "Check the email authentication for my domain" — it calls OutboundAuth and reports back.</li>
         </ol>
+
+<section id="rest-api">
+  <h2>REST API</h2>
+  <p>The same checks are also available as a plain REST API — one HTTP call, a JSON answer. Use it from scripts, spreadsheets, monitoring jobs, or any tool that does not speak MCP. It runs the identical engine as the MCP server above, so the scores match.</p>
+
+  <h3>Domain health report</h3>
+  <div class="endpoint-box">
+    <code>GET https://outboundauth.com/api/check?domain=example.com</code>
+  </div>
+  <pre>curl "https://outboundauth.com/api/check?domain=example.com"</pre>
+  <p>Returns the full report: SPF, DKIM (common selectors), DMARC, MX and blacklist status, each scored out of 100, plus one overall score, the top problems and the recommended fix order.</p>
+  <pre>{
+  "domain": "outboundauth.com",
+  "overall": 85,
+  "verdict": "healthy — keep monitoring for quiet changes",
+  "spf": {
+    "score": 100,
+    "verdict": "looks good",
+    "record": "v=spf1 -all",
+    "findings": [
+      { "level": "ok", "title": "SPF record found", "detail": "The record begins with v=spf1." },
+      …
+    ]
+  },
+  "dkim":       { "score": 50,  "verdict": "needs attention", … },
+  "dmarc":      { "score": 100, "record": "v=DMARC1; p=reject; rua=mailto:…", … },
+  "mx":         { "score": 70,  "hosts": [], … },
+  "blacklists": { "score": 100, "ips_checked": ["…"], … },
+  "problems": [
+    { "area": "MX", "level": "warn", "title": "No MX records found" },
+    …
+  ]
+}</pre>
+
+  <h3>One section only</h3>
+  <p>Add <code>&amp;part=</code> with one of <code>spf</code>, <code>dmarc</code>, <code>dkim</code>, <code>mx</code> or <code>blacklists</code> to get just that section of the report:</p>
+  <pre>curl "https://outboundauth.com/api/check?domain=example.com&amp;part=dmarc"</pre>
+
+  <h3>Bounce analysis</h3>
+  <p>POST a bounce message — or just its code — and get the plain-English classification, the likely cause and the fix:</p>
+  <pre>curl -X POST "https://outboundauth.com/api/check" \
+  -H "Content-Type: application/json" \
+  -d '{"code": "550 5.1.1"}'</pre>
+  <pre>{
+  "type": "bounce",
+  "found": true,
+  "code": "550 5.1.1",
+  "bounce_type": "hard",
+  "classification": "Hard bounce — permanent failure",
+  "title": "The mailbox does not exist",
+  "meaning": "The receiving server says there is no mailbox at that address…",
+  "likely_cause": "List quality — a bad address, not a fault in your sending setup.",
+  "fix": "Remove the address from your list the same day…"
+}</pre>
+  <p>Send the full bounce text instead with <code>{"bounce_text": "…"}</code> — the more of the message you include, the more specific the answer.</p>
+
+  <h3>Email header analysis</h3>
+  <p>POST raw email headers and get the Authentication-Results verdicts for SPF, DKIM and DMARC explained, plus the sending path:</p>
+  <pre>curl -X POST "https://outboundauth.com/api/check" \
+  -H "Content-Type: application/json" \
+  -d '{"headers": "Authentication-Results: mx.google.com; dkim=pass …"}'</pre>
+  <p>The answer carries a score out of 100, the per-check findings under <code>authentication</code>, the path findings under <code>sending_path</code>, and a one-line <code>verdict</code>.</p>
+
+  <h3>Errors</h3>
+  <p>Errors are JSON too — <code>{ "error": "…" }</code> — with HTTP 400 for bad input (for example a missing or invalid domain), 404 for an unknown <code>part</code>, and 502 when the live DNS lookup itself fails.</p>
+
+  <h3>Good to know</h3>
+  <ul>
+    <li><strong>Free, no API key.</strong> Version 1 needs no key and no sign-up. Keys and higher limits are planned for a later version.</li>
+    <li><strong>Fair use.</strong> Every call runs live DNS lookups. Cache results on your side, do not hammer the endpoint, and re-check at most every few minutes per domain.</li>
+    <li><strong>Read-only, nothing stored.</strong> The API only looks up public DNS records. Domains, bounce text and headers you send are analysed in the request and not kept.</li>
+    <li><strong>Same scores as the website and MCP.</strong> One engine powers the free toolkit on this site, the MCP server and this API.</li>
+  </ul>
+</section>
 
         <h2>Good to know</h2>
         <ul>
