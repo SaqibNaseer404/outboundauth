@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="theme-color" content="#0b1715" />
+  <meta name="google-site-verification" content="lDGa9UqOTxwjHKAL1mI4PlN2ggJn2DVMSazM_CVMP5o" />
+  <meta name="description" content="Free automatic deliverability audit report: enter a domain and get a plain-English audit — SPF, DKIM, DMARC, mail setup and blacklists — generated live from public DNS, ready to print or save as PDF." />
+  <meta property="og:title" content="Free Audit Report Generator — OutboundAuth" />
+  <meta property="og:description" content="The same checks as a paid deliverability audit, generated live in your browser: scores, findings in plain English, and the top problems in fix order." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://outboundauth.com/audit-report" />
+  <meta name="twitter:card" content="summary" />
+  <meta property="og:image" content="https://outboundauth.com/og-cover.png" />
+  <link rel="canonical" href="https://outboundauth.com/audit-report" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23087f5b'/%3E%3Cpath d='M20 33l9 9 15-17' stroke='white' stroke-width='6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Free Deliverability Audit Report Generator — OutboundAuth</title>
+<!-- Google Analytics 4 -->
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied'});
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-PLRGVLMB8S"></script>
+<script>
+gtag('js', new Date());
+gtag('config','G-PLRGVLMB8S');
+</script>
+  <style>
+    .status-line{margin:18px 0 0;color:var(--muted);font-size:15px}
+    .error-box{margin:22px 0 0;padding:16px 18px;background:var(--surface-2);border:1px solid var(--bad);border-radius:10px;font-size:14px}
+    .error-box strong{color:var(--bad)}
+    .report-meta{color:var(--muted);font-size:14px;margin:6px 0 0}
+    .report-meta strong{color:var(--ink)}
+    .score-weights{color:var(--muted);font-size:13px;margin:10px 0 0}
+    .audit-table-wrap{overflow-x:auto;margin:14px 0 6px}
+    table.audit-table{width:100%;border-collapse:collapse;font-size:14px;min-width:560px}
+    .audit-table th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);padding:8px 10px;border-bottom:2px solid var(--line)}
+    .audit-table td{padding:11px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+    .audit-table .area{font-weight:700;white-space:nowrap}
+    .r-pass{color:var(--ok);font-weight:700}
+    .r-fail{color:var(--bad);font-weight:700}
+    .r-mid{color:var(--warn);font-weight:700}
+    .report-section h3{font-family:Georgia,"Times New Roman",serif;font-size:21px;letter-spacing:-.02em;margin:28px 0 10px}
+    .report-actions{margin:26px 0 0}
+    .report-note{color:var(--muted);font-size:13px;margin:22px 0 0}
+    @media print{
+      .topbar,.footer,.wa-float,.cookie-banner,.crumb,.screen-only{display:none !important}
+      body{background:#fff}
+      .shell{max-width:none;padding:0}
+      .article-wrap{padding:0}
+      .result{display:block !important;margin-top:0;border-top:0;padding-top:0}
+      .report-section,.finding,.audit-table tr,.cta-box{break-inside:avoid}
+      .report-section h3,.article h2{break-after:avoid}
+      .score,.finding,.cta-box,.record-box{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+      @page{margin:18mm 14mm}
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="/"><span class="brand-mark">✓</span>OutboundAuth</a>
+      <nav class="topnav" aria-label="Site">
+        <a href="/#toolkit">Tools</a>
+        <a href="/#services">Pricing</a>
+        <a href="/#guides">Guides</a>
+        <a href="/about">About</a>
+        <a class="cta" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20need%20help%20with%20my%20email%20authentication." target="_blank" rel="noopener">WhatsApp me</a>
+      </nav>
+    </div>
+  </header>
+  <div class="shell">
+    <div class="article-wrap">
+      <a class="crumb" href="/#toolkit">← All tools</a>
+      <article class="article">
+        <div class="screen-only">
+          <div class="kicker">Free tool · Audit report</div>
+          <h1>Your deliverability audit report, generated live</h1>
+          <p class="lede">Enter a domain and this page runs the same live checks as a paid OutboundAuth audit — SPF, DKIM, DMARC, mail setup and blacklists — then lays them out as a plain-English report you can print or save as a PDF. It is the automatic version of our <a href="/sample-audit">sample audit</a>.</p>
+
+          <div class="service-note"><strong>Private by design.</strong> The checks are live lookups of public DNS records, run when you press the button. Nothing about your domain is stored — the report exists only on this page, in your browser.</div>
+
+          <h2>Generate a report</h2>
+          <form id="report-form" novalidate>
+            <div class="field">
+              <label for="report-domain">Domain to audit <span class="hint">(for example, yourbusiness.com)</span></label>
+              <input type="text" id="report-domain" inputmode="url" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="example.com" />
+            </div>
+            <div class="actions">
+              <button class="btn primary" id="report-run" type="submit">Generate my report</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="result" id="report-results" aria-live="polite"></div>
+
+        <div class="screen-only">
+          <h2>What the report covers</h2>
+          <ul>
+            <li><strong>SPF</strong> — who is allowed to send as your domain, and whether the record is built safely.</li>
+            <li><strong>DKIM</strong> — whether your mail is being signed, checked at the ten most common selectors.</li>
+            <li><strong>DMARC</strong> — whether you have a policy that stops impersonation, and whether reports are being collected.</li>
+            <li><strong>Mail setup (MX)</strong> — whether the domain can receive mail, and on which servers.</li>
+            <li><strong>Blacklists</strong> — whether your sending IPs appear on the seven lists that matter most.</li>
+          </ul>
+          <p>Scores are weighted the same way across OutboundAuth: SPF 30, DKIM 25, DMARC 25, mail setup 10, blacklists 10 — one overall score out of 100, with the top problems listed in the order you should fix them.</p>
+
+          <h2>Honest limits</h2>
+          <p>Authentication is the foundation of deliverability — it proves your email is really from you. It does not, by itself, guarantee inbox placement. Where your mail lands also depends on your sending reputation, your list quality, and your content. Any service that promises “100% inbox” is not telling you the truth. What this report gives you is a straight answer about your authentication, in plain English, from records anyone can look up.</p>
+        </div>
+      </article>
+    </div>
+    <footer class="footer">
+      <div>
+        <p>Results are guidance, not a replacement for testing with your sending provider.</p>
+        <p style="margin-top:6px">Contact: saqibnaseer077@gmail.com · +92 303 5544889</p>
+      </div>
+      <nav aria-label="Legal">
+        <a href="/guides/spf-explained">SPF guide</a>
+        <a href="/guides/why-emails-go-to-spam">Spam guide</a>
+        <a href="/guides/dkim-explained">DKIM guide</a>
+        <a href="/guides/google-workspace-spf-dkim-dmarc-setup">Workspace setup guide</a>
+        <a href="/guides/email-warmup-what-actually-works">Email warmup guide</a>
+        <a href="/guides/spf-10-lookup-limit">SPF 10-lookup limit guide</a>
+        <a href="/guides/dmarc-policies-none-quarantine-reject">DMARC policies guide</a>
+        <a href="/guides/email-headers-like-a-deliverability-pro">Email headers guide</a>
+        <a href="/guides/bimi-get-your-logo-in-the-inbox">BIMI guide</a>
+        <a href="/guides/cold-email-deliverability-checklist">Checklist guide</a>
+        <a href="/guides/microsoft-365-spf-dkim-dmarc-setup">Microsoft 365 setup guide</a>
+        <a href="/guides/email-bounce-codes-explained">Bounce codes guide</a>
+        <a href="/guides/dedicated-vs-shared-ip-cold-email">Dedicated vs shared IP guide</a>
+        <a href="/guides/how-to-test-email-deliverability">Deliverability testing guide</a>
+        <a href="/privacy">Privacy</a>
+        <a href="/terms">Terms</a>
+        <a href="/about">About</a>
+      </nav>
+    </footer>
+  </div>
+  <a class="wa-float" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20need%20help%20with%20my%20email%20setup." target="_blank" rel="noopener" aria-label="Chat on WhatsApp">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3C9.4 3 4 8.4 4 15c0 2.4.7 4.6 2 6.6L4 29l7.6-2c2 .9 4.1 1.5 6.4 1.5 6.6 0 12-5.4 12-12S22.6 3 16 3zm0 21.8c-2 0-3.9-.5-5.5-1.5l-.4-.2-4.5 1.2 1.2-4.4-.3-.4c-1-1.7-1.6-3.7-1.6-5.7C4.9 9.4 10.4 4 16 4s11.1 5.4 11.1 11S21.6 24.8 16 24.8zm6.1-8.1c-.3-.2-1.9-1-2.2-1.1-.3-.1-.5-.2-.7.2-.2.3-.8 1.1-1 1.3-.2.2-.4.2-.7.1-.3-.2-1.4-.5-2.6-1.6-.9-.9-1.6-1.9-1.8-2.2-.2-.3 0-.5.1-.7l.5-.6c.2-.2.2-.3.3-.6.1-.2 0-.4 0-.6-.1-.2-.7-1.8-1-2.4-.3-.6-.5-.5-.7-.6h-.6c-.2 0-.6.2-.9.4-.3.3-1.1 1.1-1.1 2.7s1.2 3.1 1.3 3.4c.2.2 2.2 3.4 5.4 4.7.8.3 1.3.5 1.8.7.8.2 1.4.2 2 .1.6-.1 1.9-.8 2.2-1.5.3-.7.3-1.4.2-1.5-.1-.2-.3-.2-.7-.4z"/></svg>
+  </a>
+<div id="cookie-banner" class="cookie-banner" hidden>
+  <p>We use cookies to understand site traffic and improve OutboundAuth. <a href="/privacy">Privacy Policy</a></p>
+  <div class="cookie-actions">
+    <button id="cookie-accept" type="button">Accept</button>
+    <button id="cookie-decline" type="button">Decline</button>
+  </div>
+</div>
+<script src="/consent.js"></script>
+<script>
+/* ============================================================
+   OutboundAuth — automatic audit report core (pure functions)
+   renderReport() takes the JSON returned by
+   GET https://outboundauth.com/api/check?domain=<domain>
+   and returns the report as an HTML string, in the format of
+   the sample audit. No DOM, no network in this block, so the
+   exact same code can be exercised from Node for testing.
+   ============================================================ */
+
+function escHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+/* Same cleaning + validation the API applies (functions/api/check.js). */
+function cleanDomainInput(raw) {
+  var d = String(raw || '').trim().toLowerCase()
+    .replace(/^https?:\/\//, '').replace(/^www\./, '')
+    .split('/')[0].split('?')[0].split('#')[0].split(':')[0].trim();
+  return /^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)*\.[a-z]{2,}$/.test(d) ? d : '';
+}
+
+function scoreClass(points) {
+  if (points === null || points === undefined) return '';
+  return points >= 85 ? 'ok' : points >= 60 ? 'warn' : 'bad';
+}
+
+/* Pass / Warning / Fail for one section, driven by its worst finding. */
+function resultWord(section) {
+  if (!section || section.score === null || section.score === undefined) {
+    return { word: 'Not scored', cls: 'r-mid' };
+  }
+  var worst = 'ok';
+  (section.findings || []).forEach(function (x) {
+    if (x.level === 'bad') worst = 'bad';
+    else if (x.level === 'warn' && worst === 'ok') worst = 'warn';
+  });
+  if (worst === 'bad') return { word: 'Fail', cls: 'r-fail' };
+  if (worst === 'warn') return { word: 'Warning', cls: 'r-mid' };
+  return { word: 'Pass', cls: 'r-pass' };
+}
+
+function findingsHtml(findings) {
+  if (!findings || !findings.length) return '';
+  var marks = { ok: '✓', warn: '!', bad: '✕' };
+  var items = findings.map(function (x) {
+    var level = (x.level === 'ok' || x.level === 'warn' || x.level === 'bad') ? x.level : 'warn';
+    return '<li class="finding ' + level + '"><span class="mark">' + marks[level] + '</span>' +
+      '<div><strong>' + escHtml(x.title) + '</strong><span>' + escHtml(x.detail) + '</span></div></li>';
+  }).join('');
+  return '<ul class="findings">' + items + '</ul>';
+}
+
+function sectionSummary(key, s) {
+  if (!s) return '';
+  if (key === 'spf') return s.record ? 'Record published: ' + s.record : 'No SPF record published.';
+  if (key === 'dmarc') return s.record ? 'Record published: ' + s.record : 'No DMARC record published.';
+  if (key === 'dkim') {
+    return (s.found && s.found.length)
+      ? 'Signing key found at ' + s.found.map(function (x) { return x.selector; }).join(', ') + '.'
+      : 'No key found at the common selectors checked.';
+  }
+  if (key === 'mx') {
+    return (s.hosts && s.hosts.length)
+      ? s.hosts.map(function (h) { return h.host + ' (priority ' + h.priority + ')'; }).join(', ')
+      : 'No MX records — this domain cannot receive email.';
+  }
+  if (key === 'blacklists') {
+    return (s.ips_checked && s.ips_checked.length)
+      ? 'Checked ' + s.ips_checked.join(', ') + ' against seven lists.'
+      : 'No IP address available to check.';
+  }
+  return '';
+}
+
+var REPORT_SECTIONS = [
+  { key: 'spf', label: 'SPF', weight: 30 },
+  { key: 'dkim', label: 'DKIM', weight: 25 },
+  { key: 'dmarc', label: 'DMARC', weight: 25 },
+  { key: 'mx', label: 'Mail setup (MX)', weight: 10 },
+  { key: 'blacklists', label: 'Blacklists', weight: 10 },
+];
+
+function renderReport(data, whenText) {
+  var domain = data.domain || '';
+  var out = [];
+
+  /* --- Report header, mirroring the sample audit --- */
+  out.push('<div class="kicker">Deliverability Audit · Live report</div>');
+  out.push('<h2>Audit report: ' + escHtml(domain) + '</h2>');
+  out.push('<p class="report-meta">Domain checked: <strong>' + escHtml(domain) + '</strong> · Checked: ' +
+    escHtml(whenText) + ' · Generated live by OutboundAuth from public DNS records.</p>');
+
+  out.push('<div class="scoreline"><div class="score ' + scoreClass(data.overall) + '">' + escHtml(data.overall) +
+    '</div><div class="score-copy"><h3>Overall score: ' + escHtml(data.overall) + '/100</h3><p>' +
+    escHtml(data.verdict || '') + '</p></div></div>');
+  out.push('<p class="score-weights">How the score works: 100 points across five checks — SPF 30, DKIM 25, DMARC 25, mail setup 10, blacklists 10. This domain scored ' +
+    REPORT_SECTIONS.map(function (sec) {
+      var s = data[sec.key];
+      return sec.label + ' ' + (s && s.score !== null && s.score !== undefined ? s.score : 'not scored');
+    }).join(', ') + '.</p>');
+
+  /* --- What we checked (summary table, as in the sample) --- */
+  out.push('<h2>What we checked</h2>');
+  out.push('<div class="audit-table-wrap"><table class="audit-table"><thead><tr><th>Check</th><th>Result</th><th>Score</th><th>What we found</th></tr></thead><tbody>');
+  REPORT_SECTIONS.forEach(function (sec) {
+    var s = data[sec.key];
+    var rw = resultWord(s);
+    out.push('<tr><td class="area">' + sec.label + '</td><td class="' + rw.cls + '">' + rw.word + '</td><td>' +
+      (s && s.score !== null && s.score !== undefined ? escHtml(s.score) + '/100' : '—') + '</td><td>' +
+      escHtml(sectionSummary(sec.key, s)) + '</td></tr>');
+  });
+  out.push('</tbody></table></div>');
+
+  /* --- Per-area detail: every finding the API returned --- */
+  out.push('<h2>Findings, in plain English</h2>');
+  REPORT_SECTIONS.forEach(function (sec) {
+    var s = data[sec.key];
+    if (!s) return;
+    out.push('<div class="report-section"><h3>' + sec.label + ' — ' +
+      (s.score !== null && s.score !== undefined ? escHtml(s.score) + '/100' : 'not scored') +
+      (s.verdict ? ' · ' + escHtml(s.verdict) : '') + '</h3>');
+    out.push(findingsHtml(s.findings));
+    if ((sec.key === 'spf' || sec.key === 'dmarc') && s.record) {
+      out.push('<div class="record-box"><code>' + escHtml(s.record) + '</code></div>');
+    }
+    if (sec.key === 'dkim' && s.found && s.found.length) {
+      s.found.forEach(function (x) {
+        out.push('<div class="record-box"><code>' + escHtml(x.host) + ' — ' + escHtml(x.record) + '</code></div>');
+      });
+    }
+    out.push('</div>');
+  });
+
+  /* --- Top problems, in fix order --- */
+  out.push('<h2>Top problems, in fix order</h2>');
+  if (data.problems && data.problems.length) {
+    var pmarks = { warn: '!', bad: '✕' };
+    var pitems = data.problems.map(function (p, i) {
+      var level = p.level === 'bad' ? 'bad' : 'warn';
+      return '<li class="finding ' + level + '"><span class="mark">' + pmarks[level] + '</span>' +
+        '<div><strong>' + (i + 1) + '. [' + escHtml(p.area) + '] ' + escHtml(p.title) + '</strong></div></li>';
+    }).join('');
+    out.push('<ul class="findings">' + pitems + '</ul>');
+  } else {
+    out.push('<p>No problems found in these checks. Records can still break quietly — re-check before every big send.</p>');
+  }
+  if (data.fix_order) out.push('<p><strong>Recommended fix order:</strong> ' + escHtml(data.fix_order) + '</p>');
+
+  /* --- What healthy looks like --- */
+  out.push('<h2>What “healthy” looks like</h2>');
+  out.push('<p>An SPF record that names only the services you really send through and ends in <span class="inline">-all</span>. DKIM signing switched on, so every outgoing email carries a signature that verifies. A DMARC record with reports switched on (<span class="inline">rua</span>) and the policy enforced at <span class="inline">p=reject</span>, telling every major inbox provider to refuse impersonation attempts. Mail servers in place, and sending IPs clean on the major blacklists. A domain in that state scores in the 90s on this same audit — and its customers can trust that an email from the company really is from the company.</p>');
+
+  /* --- Honest limits (mirrors the sample audit) --- */
+  out.push('<h2>Honest limits</h2>');
+  out.push('<p>Authentication is the foundation of deliverability — it proves your email is really from you. It does not, by itself, guarantee inbox placement. Where your mail lands also depends on your sending reputation, your list quality, and your content. Any service that promises “100% inbox” is not telling you the truth. What this audit gives you is a straight answer about your authentication, in plain English, from live public records.</p>');
+
+  /* --- Services CTA --- */
+  out.push('<div class="cta-box"><h3>Want a human to fix this for you?</h3>' +
+    '<p>This free report is generated automatically from live checks. The paid audit ($49) adds a hand-written fix plan with the exact records for your email provider, delivered within 48 hours — and the $49 comes off the price if you then order the full setup ($149). Ongoing monitoring is also available at $29/month.</p>' +
+    '<a class="btn primary" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20want%20the%20%2449%20audit%20for%20my%20domain." target="_blank" rel="noopener">Order the $49 audit on WhatsApp</a>' +
+    '<a class="btn" href="/#services" style="margin-left:8px">See packages</a></div>');
+
+  out.push('<div class="report-actions screen-only"><button class="btn primary" id="report-print" type="button">Print / Save as PDF</button></div>');
+
+  out.push('<p class="report-note">About this report: the checks above are real. They were run live on ' + escHtml(whenText) +
+    ' against the public DNS records of ' + escHtml(domain) + ', exactly the way a paid audit is run. DNS changes over time, so any audit — including this one — is a snapshot of public records at the moment it was generated. Checks are live public DNS lookups; nothing about this domain was stored.</p>');
+
+  return out.join('\n');
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { escHtml: escHtml, cleanDomainInput: cleanDomainInput, scoreClass: scoreClass, resultWord: resultWord, renderReport: renderReport };
+}
+</script>
+<script>
+/* ============================================================
+   Page wiring: form -> live API -> render. Browser only.
+   ============================================================ */
+(function () {
+  if (typeof document === 'undefined') return;
+  var form = document.getElementById('report-form');
+  var input = document.getElementById('report-domain');
+  var button = document.getElementById('report-run');
+  var results = document.getElementById('report-results');
+  if (!form || !input || !results) return;
+
+  function show(html) {
+    results.innerHTML = html;
+    results.classList.add('visible');
+  }
+  function showError(title, detail) {
+    show('<div class="error-box"><strong>' + escHtml(title) + '</strong><br />' + escHtml(detail) + '</div>');
+    results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var domain = cleanDomainInput(input.value);
+    if (!domain) {
+      showError('That doesn’t look like a domain.', 'Enter a domain like yourbusiness.com — no http://, no page paths. Nothing was checked.');
+      input.focus();
+      return;
+    }
+    button.disabled = true;
+    show('<p class="status-line">Checking <strong>' + escHtml(domain) + '</strong>… running live DNS lookups for SPF, DKIM, DMARC, mail servers and blacklists. This takes a few seconds.</p>');
+
+    fetch('/api/check?domain=' + encodeURIComponent(domain), { headers: { Accept: 'application/json' } })
+      .then(function (res) {
+        return res.json().then(function (data) { return { ok: res.ok, data: data }; });
+      })
+      .then(function (r) {
+        button.disabled = false;
+        if (!r.ok || !r.data || r.data.error) {
+          showError('The live check could not be completed.',
+            (r.data && r.data.error) ? r.data.error : 'The checker did not answer. Please try again in a moment — no results were invented to fill the gap.');
+          return;
+        }
+        var when = new Date().toLocaleString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        show(renderReport(r.data, when));
+        var printBtn = document.getElementById('report-print');
+        if (printBtn) printBtn.addEventListener('click', function () { window.print(); });
+        results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      })
+      .catch(function () {
+        button.disabled = false;
+        showError('The live check could not be completed.', 'Your browser could not reach the OutboundAuth checker. Check your connection and try again — no results were invented to fill the gap.');
+      });
+  });
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () { navigator.serviceWorker.register('/sw.js').catch(function () {}); });
+}
+</script>
+</body>
+</html>
