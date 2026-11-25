@@ -58,13 +58,35 @@ gtag('config','G-PLRGVLMB8S');
         <img src="hero-banner.webp" alt="OutboundAuth — Your AI Email Deliverability Engineer. Diagnose. Authenticate. Monitor. Improve." width="1600" height="595" style="width:100%;height:auto;display:block;border-radius:16px" fetchpriority="high">
       </figure>
       <div class="hero-copy">
-        <h1 id="hero-title">Stop your emails from landing in spam.</h1>
+        <h1 id="hero-title">Stop your emails from landing in <span id="hero-rotate">spam.</span></h1>
         <p class="lede">Every email in spam is a client you never met. Free SPF, DKIM and DMARC audits, record builders, and a header analyzer — find the authentication issues hurting your deliverability and fix them in minutes.</p>
         <div class="hero-cta">
           <a class="btn primary" href="#services">Get my DNS fixed →</a>
           <a class="btn" href="#toolkit">Try the free tools</a>
         </div>
       </div>
+      <style>
+        #hero-rotate{display:inline-block;transition:opacity .35s ease,transform .35s ease}
+        #hero-rotate.swap{opacity:0;transform:translateY(8px)}
+        @media (prefers-reduced-motion: reduce){#hero-rotate{transition:none}}
+      </style>
+      <script>
+        (function(){
+          var el=document.getElementById('hero-rotate');
+          if(!el) return;
+          if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+          var words=['spam.','the junk folder.','the promotions tab.','the trash.'];
+          var i=0;
+          setInterval(function(){
+            el.classList.add('swap');
+            setTimeout(function(){
+              i=(i+1)%words.length;
+              el.textContent=words[i];
+              el.classList.remove('swap');
+            },360);
+          },2600);
+        })();
+      </script>
       <div class="hero-note"><strong>Start with a record from your DNS panel</strong><p>These tools inspect what you paste. They do not publish changes to your domain.</p></div>
       <div class="hero-video">
         <video controls preload="none" poster="film-poster.jpg" playsinline>
