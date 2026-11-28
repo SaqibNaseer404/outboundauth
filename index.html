@@ -136,6 +136,58 @@ gtag('config','G-PLRGVLMB8S');
 </div>
 
 
+
+    <section class="idg-section" aria-labelledby="idg-title">
+      <style>
+        .idg-section{margin:26px 0;padding:clamp(22px,4vw,40px);background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}
+        .idg-grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(240px,.8fr);gap:30px;align-items:center}
+        @media (max-width:820px){.idg-grid{grid-template-columns:1fr}}
+        .idg-panel{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:16px;min-height:340px;display:flex;flex-direction:column}
+        .idg-copy .kicker{color:var(--accent);font-weight:800;font-size:12px;letter-spacing:.12em;text-transform:uppercase}
+        .idg-copy h2{margin:6px 0 8px;font-family:Georgia,"Times New Roman",serif;font-size:clamp(26px,3.4vw,38px);letter-spacing:-.025em;line-height:1.1}
+        .idg-copy p{color:var(--muted);margin:0 0 14px;max-width:46ch}
+        .idg-hud{display:flex;justify-content:space-between;gap:8px;font-size:13px;font-weight:700;color:var(--muted);margin-bottom:10px}
+        .idg-bar-wrap{height:6px;background:var(--line);border-radius:99px;overflow:hidden;margin-bottom:12px}
+        .idg-bar{height:100%;background:var(--accent);border-radius:99px}
+        .idg-bar-low{background:var(--bad)}
+        .idg-card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px}
+        .idg-subject{font-weight:700;font-size:16px;margin-bottom:2px}
+        .idg-from{font-size:13px;color:var(--muted);margin-bottom:10px;word-break:break-all}
+        .idg-stamps{display:flex;gap:6px;flex-wrap:wrap}
+        .idg-stamp{font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+        .idg-stamp.idg-pass{border-color:var(--ok);color:var(--ok)}
+        .idg-stamp.idg-fail{border-color:var(--bad);color:var(--bad)}
+        .idg-stamp.idg-none{border-color:var(--warn);color:var(--warn)}
+        .idg-feedback{font-size:14px;min-height:42px;margin-bottom:12px;line-height:1.45}
+        .idg-fb-good{color:var(--ok)}
+        .idg-fb-bad{color:var(--bad)}
+        .idg-actions{display:flex;gap:10px;margin-top:auto}
+        .idg-btn{flex:1;padding:12px;border-radius:10px;font-weight:800;font-size:15px;cursor:pointer;text-align:center;text-decoration:none;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+        .idg-btn-allow{background:var(--accent);border-color:var(--accent);color:#fff}
+        .idg-btn-allow:hover{background:var(--accent-2)}
+        .idg-btn-block:hover{border-color:var(--bad);color:var(--bad)}
+        .idg-btn-main{background:var(--accent);border-color:var(--accent);color:#fff;display:inline-block;flex:none;padding:12px 20px}
+        .idg-btn-main:hover{background:var(--accent-2)}
+        .idg-btn-ghost{flex:none;padding:12px 20px}
+        .idg-start{display:flex;flex-direction:column;align-items:flex-start;gap:10px;justify-content:center;flex:1}
+        .idg-start-title{font-family:Georgia,"Times New Roman",serif;font-size:26px;font-weight:600;letter-spacing:-.02em}
+        .idg-start-text{color:var(--muted);margin:0;font-size:15px;line-height:1.55}
+        .idg-start .idg-btn{margin-top:4px}
+      </style>
+      <div class="idg-grid">
+        <div class="idg-panel" id="id-game">
+          <p class="idg-start-text">Loading the game… if this stays, please enable JavaScript.</p>
+        </div>
+        <div class="idg-copy">
+          <div class="kicker">Try it — 60 seconds</div>
+          <h2 id="idg-title">Learn the 3 checks that keep email out of spam</h2>
+          <p>Every email carries three proof stamps: SPF, DKIM and DMARC. Play one round of Inbox Defender and you will spot them like a filter does — then run the same checks on your own domain, free, in the toolkit below.</p>
+          <a class="idg-btn idg-btn-main" href="#toolkit">Check my domain →</a>
+        </div>
+      </div>
+    </section>
+    <script src="/inbox-defender.js" defer></script>
+
     <section class="cost-strip" aria-label="Cost of the spam folder">
       <div class="section-head">
         <div class="kicker">The cost of the spam folder</div>
@@ -202,7 +254,7 @@ gtag('config','G-PLRGVLMB8S');
           <button class="nav-btn" role="tab" aria-selected="false" aria-controls="subject-panel" id="subject-tab"><span class="nav-icon">Aa</span><span>Subject</span></button>
           <button class="nav-btn" role="tab" aria-selected="false" aria-controls="contact-panel" id="contact-tab"><span class="nav-icon">→</span><span>Get help</span></button>
         </div>
-        <div class="contact-card"><strong>Need the DNS fixed?</strong><p>Get hands-on email authentication help.</p><div class="contact-links"><a href="/cdn-cgi/l/email-protection#e192809088838f8092848493d1d6d6a1868c80888dcf828e8cde9294838b848295dca48c80888dc4d3d180949589848f9588828095888e8fc4d3d189848d91"><span class="__cf_email__" data-cfemail="0d7e6c7c646f636c7e68687f3d3a3a4d6a606c6461236e6260">[email&#160;protected]</span></a><a href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20need%20help%20with%20my%20email%20authentication." target="_blank" rel="noopener">WhatsApp</a></div></div>
+        <div class="contact-card"><strong>Need the DNS fixed?</strong><p>Get hands-on email authentication help.</p><div class="contact-links"><a href="mailto:saqibnaseer077@gmail.com">saqibnaseer077@gmail.com</a><a href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20need%20help%20with%20my%20email%20authentication." target="_blank" rel="noopener">WhatsApp</a></div></div>
       </aside>
       <main>
         <section class="panel active" id="health-panel" role="tabpanel" aria-labelledby="health-tab">
@@ -256,8 +308,8 @@ gtag('config','G-PLRGVLMB8S');
             <div class="field-row"><div class="field"><label for="help-name">Your name</label><input id="help-name" autocomplete="name" placeholder="Your name" /></div><div class="field"><label for="help-domain">Domain</label><input id="help-domain" inputmode="url" placeholder="example.com" /></div></div>
             <div class="field"><label for="help-type">What needs attention?</label><select id="help-type"><option>SPF setup or repair</option><option>DKIM setup or repair</option><option>DMARC rollout</option><option>Full deliverability review</option><option>Other email setup</option></select></div>
             <div class="field"><label for="help-details">Details</label><textarea id="help-details" placeholder="Tell me which sending platforms you use and what is going wrong."></textarea></div>
-            <div class="actions"><a href="/cdn-cgi/l/email-protection#6a190b1b0308040b190f0f185a5d5d2a0d070b03064409050755191f08000f091e572f070b03064f585a0b1f1e020f041e03090b1e0305044f585a020f061a"><span class="__cf_email__" data-cfemail="2b584a5a4249454a584e4e591b1c1c6b4c464a424705484446">[email&#160;protected]</span></a><a class="btn" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20need%20help%20with%20my%20email%20setup." target="_blank" rel="noopener">WhatsApp: +92 303 5544889</a></div>
-            <div class="service-note"><strong>Direct contact</strong><br><a href="/cdn-cgi/l/email-protection#146775657d767a7567717166242323547379757d783a777b79"><span class="__cf_email__" data-cfemail="d5a6b4a4bcb7bbb4a6b0b0a7e5e2e295b2b8b4bcb9fbb6bab8">[email&#160;protected]</span></a><br>+92 303 5544889</div>
+            <div class="actions"><a href="mailto:saqibnaseer077@gmail.com">saqibnaseer077@gmail.com</a><a class="btn" href="https://wa.me/923035544889?text=Hi%20Saqib%2C%20I%20need%20help%20with%20my%20email%20setup." target="_blank" rel="noopener">WhatsApp: +92 303 5544889</a></div>
+            <div class="service-note"><strong>Direct contact</strong><br><a href="mailto:saqibnaseer077@gmail.com">saqibnaseer077@gmail.com</a><br>+92 303 5544889</div>
           </div>
         </section>
       </main>
@@ -580,7 +632,7 @@ gtag('config','G-PLRGVLMB8S');
     <footer class="footer">
       <div>
         <p>Results are guidance, not a replacement for testing with your sending provider.</p>
-        <p style="margin-top:6px">Contact: <a href="/cdn-cgi/l/email-protection#83f0e2f2eae1ede2f0e6e6f1b3b4b4c3e4eee2eaefade0ecee"><span class="__cf_email__" data-cfemail="146775657d767a7567717166242323547379757d783a777b79">[email&#160;protected]</span></a> · +92 303 5544889</p>
+        <p style="margin-top:6px">Contact: <a href="mailto:saqibnaseer077@gmail.com">saqibnaseer077@gmail.com</a> · +92 303 5544889</p>
       </div>
       <nav aria-label="Legal">
         <a href="/guides/spf-explained">SPF guide</a>
@@ -895,5 +947,5 @@ if ('serviceWorker' in navigator) {
   measure();render();
 })();
 </script>
-<script src="/chat-widget.js" defer></script><script src="/chat-widget.js" defer></script></body>
+<script src="/chat-widget.js" defer></script><script src="/chat-widget.js" defer></script><script src="/chat-widget.js" defer></script></body>
 </html>
